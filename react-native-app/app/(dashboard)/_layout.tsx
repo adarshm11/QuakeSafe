@@ -7,6 +7,7 @@ import UserDashboard from "./userDashboard";
 import Profile from "./profile";
 import Settings from "./settings"; 
 import Maps from "./Maps";
+import Chat from "./chat";
 
 const Tab = createBottomTabNavigator();
 
@@ -61,6 +62,11 @@ export default function DashboardLayout() {
         name="Settings"
         component={Settings}
         options={{ title: "Settings", headerShown: true }}
+      />
+      <Tab.Screen
+        name="Chat"
+        component={Chat}
+        options={{ title: "Chat", headerShown: true }}
       />
     </Tab.Navigator>
   );
