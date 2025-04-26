@@ -63,11 +63,11 @@ const Login = () => {
         secureTextEntry
       />
 
-      <ThemedButton onPress={handleLogin} disabled={loading}>
+      <ThemedButton onPress={handleLogin} disabled={loading} style={{ backgroundColor: "#7ee820", padding: 15, borderRadius: 5 }}>
         {loading ? (
           <ActivityIndicator color="#f2f2f2" />
         ) : (
-          <Text style={{ color: "#f2f2f2" }}>Login</Text>
+          <Text style={{ color: "#222222" }}>Login</Text>
         )}
       </ThemedButton>
 
@@ -89,11 +89,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 20,
+    backgroundColor: "#000",
   },
   title: {
     textAlign: "center",
     fontSize: 18,
     marginBottom: 30,
+    color: "#b7f740",
   },
   input: {
     height: 50,
