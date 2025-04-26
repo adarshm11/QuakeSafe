@@ -17,6 +17,7 @@ export default function RootLayout() {
           {/* Groups */}
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
           <Stack.Screen name="(dashboard)" options={{ headerShown: false }} />
+          <Stack.Screen name="(chat)" options={{ headerShown: false }} />
 
           {/* Individual Screens */}
           <Stack.Screen name="index" options={{ title: "Home" }} />
