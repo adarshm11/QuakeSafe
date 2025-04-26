@@ -7,7 +7,7 @@ import uuid
 from dotenv import load_dotenv
 import os
 from pydantic import BaseModel
-from db.supabase_client import check_if_user_exists,create_chat_message,get_emergency_actions_by_user,create_emergency_action,get_chat_messages_by_user,create_location_risk_data,get_location_risk_data_by_user,create_safety_assessment,get_safety_assessments_by_image
+from db.supabase_client import insert_image_entry, insert_safety_assessment
 from supabase import create_client
 from typing import Optional
 

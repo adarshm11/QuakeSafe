@@ -3,9 +3,17 @@ import os
 from supabase import Client
 from uuid import uuid4
 
-def check_if_user_exists(supabase:Client,user_id:str)->bool:
-    response = supabase.from_('user_profiles').select('id').eq('id', user_id).limit(1).execute()
-    return bool(response.data)
+def check_if_user_exists(supabase: Client, user_id: str) -> bool:
+    try:
+        response = supabase.from_('user_profiles').select('id').eq('id', user_id).limit(1).execute()
+        if hasattr(response, 'error') and response.error:
+            error_msg = str(response.error)
+            print(f"Supabase error during insertion: {error_msg}")
+            return False
+        return True if response.data else False
+    except Exception as e:
+        print(f'Error checking db: {e}')
+        return False
 
 def insert_image_entry(supabase: Client, user_id: str, image_url: str, longitude: float, latitude: float, location_name: str = None):
     """Create a new image in the database."""
@@ -18,7 +26,7 @@ def insert_image_entry(supabase: Client, user_id: str, image_url: str, longitude
     }
     try: 
         response = supabase.from_('images').insert(data).execute()
-        if hasattr(response, 'error'):
+        if hasattr(response, 'error') and response.error:
             error_msg = str(response['error'])
             print(f"Supabase error during insertion: {error_msg}")
             return False
