@@ -1,0 +1,4 @@
+macenv/
+
+# Ignore the .env file
+.env
