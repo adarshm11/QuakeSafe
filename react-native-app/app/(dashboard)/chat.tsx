@@ -1,16 +1,16 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 
-const Profile = () => {
+const Chat = () => {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Profile</Text>
-      <Text style={styles.subtitle}>This is your profile page.</Text>
+      <Text style={styles.title}>Chat</Text>
+      <Text style={styles.subtitle}>This is your Chat page.</Text>
     </View>
   );
 };
 
-export default Profile;
+export default Chat;
 
 const styles = StyleSheet.create({
   container: {
