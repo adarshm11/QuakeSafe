@@ -1,0 +1,6 @@
+macenv/
+
+# Ignore the .env file
+.env
+.python-version
+__pycache__/

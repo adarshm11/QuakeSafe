@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+boto3
+anthropic
+dotenv
+supabase
+uuid
+httpx
+pydantic
+asyncpg # If you're using PostgreSQL with Supabase
+databases # For async database queries
+python-multipart
