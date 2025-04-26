@@ -40,6 +40,31 @@ const UserDashboard = () => {
     }
   };
 
+  const takePhoto = async () => {
+    // Request camera permission
+    if (Platform.OS !== "web") {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission Denied",
+          "We need access to your camera to take photos."
+        );
+        return;
+      }
+    }
+
+    // Open camera
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setImage(result.assets[0].uri); // Set the captured image URI
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Earthquake Safety Dashboard</Text>
@@ -47,7 +72,11 @@ const UserDashboard = () => {
         Upload an image of your city to help us analyze safety measures.
       </Text>
 
-      <Button title="Upload Image" onPress={pickImage} />
+      <View style={styles.buttonContainer}>
+        <Button title="Upload Image" onPress={pickImage} />
+        <View style={styles.buttonSpacer} />
+        <Button title="Take Photo" onPress={takePhoto} />
+      </View>
 
       {image && (
         <View style={styles.imageContainer}>
@@ -80,6 +109,14 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 30,
     color: "#555",
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    width: "100%",
+  },
+  buttonSpacer: {
+    width: 20,
   },
   imageContainer: {
     marginTop: 20,

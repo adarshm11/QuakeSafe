@@ -4,7 +4,7 @@ import { Link } from "expo-router";
 import { ThemedView } from "../components/ThemedView";
 import { ThemedText } from "../components/ThemedText";
 import Spacer from "../components/Spacer";
-import { Colors } from "../constants/Colors";
+
 
 const Home = () => {
   return (
