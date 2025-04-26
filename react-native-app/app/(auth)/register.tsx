@@ -1,11 +1,20 @@
 import React, { useState } from "react";
-import { StyleSheet, TextInput, ActivityIndicator, Text } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  TextInput,
+  ActivityIndicator,
+  Dimensions,
+  View,
+} from "react-native";
 import { Link, router } from "expo-router";
 import { useAuth } from "../../context/AuthContext";
 import { ThemedView } from "../../components/ThemedView";
 import { ThemedText } from "../../components/ThemedText";
 import Spacer from "../../components/Spacer";
 import ThemedButton from "../../components/ThemedButton";
+
+const { width } = Dimensions.get("window");
 
 const Register = () => {
   const [email, setEmail] = useState("");
@@ -30,9 +39,16 @@ const Register = () => {
 
   return (
     <ThemedView style={styles.container}>
-      <Spacer />
+      {/* Ambient glow background */}
+      <View style={styles.ambientGlow} />
+      
+      <Spacer height={40} />
       <ThemedText style={styles.title}>
-        Register an Account
+        Register for QuakeSafe
+      </ThemedText>
+
+      <ThemedText style={styles.subtitle}>
+        Create your account for earthquake safety information
       </ThemedText>
 
       {error && <ThemedText style={styles.error}>{error}</ThemedText>}
@@ -47,6 +63,8 @@ const Register = () => {
         autoCapitalize="none"
       />
 
+      <Spacer height={15} />
+
       <TextInput
         style={styles.input}
         placeholder="Password"
@@ -56,17 +74,26 @@ const Register = () => {
         secureTextEntry
       />
 
-      <ThemedButton onPress={handleRegister} disabled={loading} style={{ backgroundColor: "#7ee820", padding: 15, borderRadius: 5 }}>
+      <Spacer height={30} />
+
+      <ThemedButton 
+        onPress={handleRegister} 
+        disabled={loading} 
+        style={styles.registerButton}
+      >
         {loading ? (
-          <ActivityIndicator color="#f2f2f2" />
+          <ActivityIndicator color="#000" />
         ) : (
-          <Text style={{ color: "#222222" }}>Register</Text>
+          <Text style={styles.registerButtonText}>Register</Text>
         )}
       </ThemedButton>
 
-      <Spacer height={100} />
+      <Spacer height={60} />
+      
       <Link href="/login" replace>
-        <ThemedText style={{ textAlign: "center" }}>Login instead</ThemedText>
+        <ThemedText style={styles.loginText}>
+          Already have an account? <Text style={styles.loginHighlight}>Login</Text>
+        </ThemedText>
       </Link>
     </ThemedView>
   );
@@ -80,28 +107,68 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 20,
-    backgroundColor: "#000",
+    backgroundColor: "#0a0a0a",
+    position: "relative",
+  },
+  ambientGlow: {
+    position: "absolute",
+    top: "40%",
+    width: width,
+    height: width,
+    borderRadius: width,
+    backgroundColor: "rgba(183, 247, 64, 0.03)",
+    transform: [{scaleX: 1.5}]
   },
   title: {
-    textAlign: "center",
-    fontSize: 18,
-    marginBottom: 30,
+    fontSize: width > 400 ? 32 : 25,
+    fontWeight: "bold",
     color: "#b7f740",
+    textAlign: "center",
+    marginBottom: 16,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: "#a0a0a0",
+    textAlign: "center",
+    marginBottom: 40,
   },
   input: {
-    height: 50,
+    height: 54,
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 5,
-    marginVertical: 10,
-    paddingHorizontal: 10,
-    width: "100%",
+    borderColor: "rgba(183, 247, 64, 0.3)",
+    borderRadius: 30,
+    paddingHorizontal: 20,
+    width: width * 0.85,
+    color: "#e0e0e0",
+    backgroundColor: "rgba(20, 20, 20, 0.8)",
+    fontSize: 16,
+  },
+  registerButton: {
+    width: width * 0.7,
+    height: 54,
+    borderRadius: 30,
+    backgroundColor: "#b7f740",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  registerButtonText: {
     color: "#000",
-    backgroundColor: "#fff",
+    fontSize: 18,
+    fontWeight: "700",
   },
   error: {
-    color: "red",
+    color: "#ff5252",
     textAlign: "center",
-    marginBottom: 10,
+    marginBottom: 20,
+    fontSize: 14,
   },
+  loginText: {
+    textAlign: "center",
+    color: "#a0a0a0",
+    fontSize: 15,
+  },
+  loginHighlight: {
+    color: "#b7f740",
+    fontWeight: "600",
+  }
 });
