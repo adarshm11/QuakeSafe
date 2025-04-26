@@ -266,8 +266,7 @@ const UserDashboard = () => {
       {showLocationInput && (
         <View style={styles.locationInputContainer}>
           <Text style={styles.locationLabel}>
-            Please specify location (be specific, e.g., "SJSU Library" not just
-            "Library"):
+            Please specify location (be specific, e.g., San Jose City Hall"):
           </Text>
           <TextInput
             style={styles.locationInput}
