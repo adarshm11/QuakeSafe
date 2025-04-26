@@ -1,6 +1,8 @@
-/backend/macenv/
+macenv/
+/backend/macenv
 
-# Ignore the .env file in the backend directory
-/backend/.env
-
+# Ignore the .env file
 .env
+/backend/.env
+.python-version
+__pycache__/
