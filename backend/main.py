@@ -5,6 +5,8 @@ import anthropic
 import uuid
 from dotenv import load_dotenv
 import os
+from pydantic import BaseModel
+import db.supabase_client
 # import helper methods from supabase client
 
 app = FastAPI()
@@ -17,21 +19,22 @@ CLAUDE_API_KEY = os.getenv('CLAUDE_API_KEY')
 s3_client = boto3.client('s3', region_name=AWS_REGION)
 claude_client = anthropic.Anthropic(api_key=CLAUDE_API_KEY)
 
-@app.post('/upload')
+class Request(BaseModel):
+    user_id: str
+    file: UploadFile = File(...)
+
+
 async def upload_to_s3(file: UploadFile):
     '''Inserts a newly uploaded user image to the AWS S3 Bucket, returning its unique filename.'''
-    print('Reached into upload endpoint')
 
     # Generate a unique filename
     filename = f'{uuid.uuid4()}.jpg'
-    print('Filename generated')
     s3_client.upload_fileobj(
         file.file,
         S3_BUCKET,
         filename,
         ExtraArgs={'ContentType': file.content_type, 'ACL': 'private'}  # ensure object is private
     )
-    print('upload complete')
     return filename
 
 async def generate_presigned_url(filename: str, expiration=300):
@@ -49,10 +52,14 @@ async def analyze_image_with_claude(image_url: str):
     response = claude_client.messages.create(
         model='claude-3-7-sonnet-20250219',
         max_tokens=200,
-        messages=[
+        messages = [
             {
-                'role': 'user',
+                'role': 'system',
                 'content': [
+                    {
+                        'type': 'text',
+                        'text': 'You are an assistant specialized in evaluating earthquake safety in urban environments. Your task is to assess uploaded city location images for potential earthquake-related risks. You will focus on obvious risks like falling debris, unstable structures, or blocked evacuation paths. For each image, provide short, clear bullet points with specific recommendations for improving safety. Limit your response to no more than 5 bullet points.'
+                    },
                     {
                         'type': 'image',
                         'source': {
@@ -60,13 +67,9 @@ async def analyze_image_with_claude(image_url: str):
                             'url': image_url,
                         },
                     },
-                    {
-                        'type': 'text',
-                        'text': 'Please evaluate the uploaded city location image for earthquake safety issues. Focus on obvious risks like falling debris, unstable structures, or blocked evacuation paths. Provide short, clear bullet points with specific recommendations. Limit your response to 5 bullet points or fewer.'
-                    }
                 ],
             }
-        ],
+        ]
     )
     return response.content[0].text
 
@@ -75,12 +78,13 @@ def calculate_safety_score():
     pass
 
 @app.post('/analyze')
-async def analyze(file: UploadFile = File(...)):
+async def analyze(request: Request):
     '''Endpoint to receive a file upload from the user, add to AWS S3 Bucket, and evaluate using Claude'''
     
-    filename = await upload_to_s3(file)
+    filename = await upload_to_s3(request.file)
     presigned_url = await generate_presigned_url(filename)
     analysis = await analyze_image_with_claude(presigned_url)
+    # input the url, image name, and analysis to the supabase db
     return {'analysis': analysis}
 
 if __name__ == '__main__':
