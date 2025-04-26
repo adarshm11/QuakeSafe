@@ -7,40 +7,38 @@ def check_if_user_exists(supabase:Client,user_id:str)->bool:
     response = supabase.from_('user_profiles').select('id').eq('id', user_id).limit(1).execute()
     return bool(response.data)
 
-def create_image(supabase:Client,user_id:str,image_url:str,room_name:str=None):
+def create_image(supabase: Client, user_id: str, image_url: str, location_name: str = None):
     """Create a new image in the database."""
     image_id = str(uuid4())
     data = {
         'id': image_id,
         'user_id': user_id,
         'image_url': image_url,
-        'room_name': room_name
+        'location_name': location_name
     }
     response = supabase.from_('images').insert(data).execute()
     return response.data
 
-def get_images_by_user(supabase: Client, user_id: str) -> list:
+def get_images_by_user(supabase: Client, user_id: str) :
     """Retrieve all images for a specific user."""
     response = supabase.from_('images').select('*').eq('user_id', user_id).execute()
     return response.data
 
-def get_image_by_id(supabase: Client, image_id: str) -> dict:
+def get_image_by_id(supabase: Client, image_id: str) :
     """Retrieve a specific image by its ID."""
     response = supabase.from_('images').select('*').eq('id', image_id).single().execute()
     return response.data
 
-def create_safety_assessment(supabase: Client, image_id: str, safety_score: float, potential_damage_cost_usd: float,
-                             estimated_magnitude_survivability: str, recommendations: list, risky_items: list) -> dict:
+def create_safety_assessment(supabase: Client, image_id: str, safety_score: float, 
+                             estimated_magnitude_survivability: str, ) :
     """Create a new safety assessment record."""
     assessment_id = str(uuid4())
     data = {
         "id": assessment_id,
         "image_id": image_id,
         "safety_score": safety_score,
-        "potential_damage_cost_usd": potential_damage_cost_usd,
         "estimated_magnitude_survivability": estimated_magnitude_survivability,
-        "recommendations": recommendations,
-        "risky_items": risky_items
+        
     }
     response = supabase.from_('safety_assessments').insert(data).execute()
     return response.data
@@ -50,14 +48,14 @@ def get_safety_assessments_by_image(supabase: Client, image_id: str) -> list:
     response = supabase.from_('safety_assessments').select('*').eq('image_id', image_id).execute()
     return response.data
 
-def create_location_risk_data(supabase: Client, user_id: str, earthquake_risk_level: str, zone_code: str) -> dict:
+def create_location_risk_data(supabase: Client, user_id: str, earthquake_risk_level: str) :
     """Create a new location risk data record."""
     risk_data_id = str(uuid4())
     data = {
         "id": risk_data_id,
         "user_id": user_id,
         "earthquake_risk_level": earthquake_risk_level,
-        "zone_code": zone_code
+       
     }
     response = supabase.from_('location_risk_data').insert(data).execute()
     return response.data
