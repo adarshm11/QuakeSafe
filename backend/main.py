@@ -69,46 +69,77 @@ async def analyze_image_with_claude(image_url: str):
         "Format your response exactly as shown, with no extra commentary."
     )
 
-    response = claude_client.messages.create(
-        model='claude-3-5-sonnet-20250219',
-        max_tokens=200,
-        messages=[
-            {
-                'role': 'system',
-                'content': prompt,
-            },
-            {
-                'role': 'user',
-                'content': [
-                    {
-                        'type': 'image',
-                        'source': {
-                            'type': 'url',
-                            'url': image_url,
+    try:
+        # Sending the request to Claude AI
+        response = claude_client.messages.create(
+            model='claude-3-5-sonnet-20250219',
+            max_tokens=200,
+            messages=[
+                {
+                    'role': 'system',
+                    'content': prompt,
+                },
+                {
+                    'role': 'user',
+                    'content': [
+                        {
+                            'type': 'image',
+                            'source': {
+                                'type': 'url',
+                                'url': image_url,
+                            },
                         },
-                    },
-                    {
-                        'type': 'text',
-                        'text': "Analyze this image for earthquake safety risks based on the system instructions."
-                    }
-                ]
-            }
-        ]
-    )
+                        {
+                            'type': 'text',
+                            'text': "Analyze this image for earthquake safety risks based on the system instructions."
+                        }
+                    ]
+                }
+            ]
+        )
 
-    return parse_claude_response(response.content[0].text)
+        # Check if response is valid
+        if 'content' not in response or not response.content:
+            print("No content in response from Claude API.")
+            return {"error": "No content returned from the Claude API."}
+
+        # Parsing the response
+        parsed_data = parse_claude_response(response.content[0].text)
+
+        if not parsed_data:
+            print("Failed to parse the response correctly.")
+            return {"error": "Failed to parse the Claude API response."}
+
+        return parsed_data
+
+    except Exception as e:
+        print(f"Error occurred while analyzing image: {str(e)}")
+        return {"error": f"An error occurred: {str(e)}"}
+
 
 def parse_claude_response(response_text: str) -> dict:
-    lines = response_text.strip().splitlines()
+    '''Parses the response from Claude and returns it in a structured dictionary'''
+    
+    # Handling unexpected or malformed response
     data = {}
+    try:
+        lines = response_text.strip().splitlines()
 
-    for line in lines:
-        if line.startswith('Description:'):
-            data['Description'] = line.split('Description:')[1].strip()
-        elif line.startswith('Score:'):
-            data['Score'] = int(line.split('Score:')[1].strip())
-        elif line.startswith('Magnitude Survivability:'):
-            data['Magnitude Survivability'] = line.split('Magnitude Survivability:')[1].strip()
+        for line in lines:
+            if line.startswith('Description:'):
+                data['Description'] = line.split('Description:')[1].strip()
+            elif line.startswith('Score:'):
+                data['Score'] = int(line.split('Score:')[1].strip())
+            elif line.startswith('Magnitude Survivability:'):
+                data['Magnitude Survivability'] = line.split('Magnitude Survivability:')[1].strip()
+
+        # If we fail to parse the expected keys, we return an empty dict
+        if not data:
+            raise ValueError("Parsed data is empty or incomplete.")
+        
+    except Exception as e:
+        print(f"Error parsing Claude response: {str(e)}")
+        return None
 
     return data
 
@@ -118,20 +149,24 @@ async def analyze(request: ImageUploadRequest):
     
     filename = await upload_to_s3(request.file) # name of file
     image_url = await generate_unique_url(filename) # unique image url for AWS
-    safety_analysis = await analyze_image_with_claude(image_url) # safety assessment of image
+    image_analysis = await analyze_image_with_claude(image_url) # safety assessment of image
     supabase_client = create_client(SUPABASE_URL, SUPABASE_KEY)
     image_id = insert_image_entry(supabase_client, ImageUploadRequest.user_id, image_url, ImageUploadRequest.longitude, ImageUploadRequest.latitude)
     if not image_id:
         return {"Error": "Insertion into DB failed"}
     
-    # calculate safety score, magnitude survivability
-    safety_score, magnitude_survivability = 0
-    response = insert_safety_assessment(supabase_client, image_id, safety_score, magnitude_survivability)
+    if hasattr(image_analysis, 'error'):
+        return {'error', image_analysis['error']}
+    else:
+        description = image_analysis['Description']
+        safety_score = image_analysis['Score']
+        magnitude_survivability = image_analysis['Magnitude Survivability']
+    response = insert_safety_assessment(supabase_client, image_id, safety_score, magnitude_survivability, description)
     if hasattr(response, 'error'):
         return {'error': response['error']}
 
     # if successful, return the analysis performed
-    return {'analysis': safety_analysis}
+    return {'analysis': image_analysis}
 
 if __name__ == '__main__':
     uvicorn.run('main:app', host='localhost', port=8000, reload=True)
