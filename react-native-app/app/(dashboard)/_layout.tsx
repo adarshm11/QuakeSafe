@@ -6,6 +6,7 @@ import { Pressable, Text, StyleSheet } from "react-native";
 import UserDashboard from "./userDashboard"; 
 import Profile from "./profile";
 import Settings from "./settings"; 
+import Maps from "./Maps";
 import Chat from "./chat";
 
 const Tab = createBottomTabNavigator();
@@ -46,6 +47,11 @@ export default function DashboardLayout() {
         name="Dashboard"
         component={UserDashboard}
         options={{ title: "Dashboard", headerShown: true }}
+      />
+      <Tab.Screen
+        name="Maps"
+        component={Maps}
+        options={{ title: "Maps", headerShown: true }}
       />
       <Tab.Screen
         name="Profile"

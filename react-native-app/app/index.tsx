@@ -2,7 +2,6 @@ import { StyleSheet, Animated, Easing, Dimensions, View, Text } from "react-nati
 import { useEffect, useRef, useState } from "react";
 import { Link } from "expo-router";
 
-// Use your themed components if available, otherwise fall back to regular components
 const ThemedView = View;
 const ThemedText = Text;
 
