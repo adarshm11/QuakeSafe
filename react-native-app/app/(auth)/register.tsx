@@ -6,6 +6,7 @@ import { ThemedView } from "../../components/ThemedView";
 import { ThemedText } from "../../components/ThemedText";
 import Spacer from "../../components/Spacer";
 import ThemedButton from "../../components/ThemedButton";
+import supabase from "../../services/supabaseClient";
 
 const Register = () => {
   const [email, setEmail] = useState("");
@@ -18,11 +19,43 @@ const Register = () => {
     try {
       setLoading(true);
       setError(null);
-      await signUp(email, password);
+
+      // Register the user with Supabase Auth
+      const response = await signUp(email, password);
+
+      // Check if response and data exist
+      if (!response || !response.data) {
+        throw new Error("Failed to get valid response during registration");
+      }
+
+      const { data, error: signUpError } = response;
+
+      if (signUpError) throw signUpError;
+
+      // Get the user ID from the registration response
+      const userId = data.user?.id;
+
+      if (!userId) {
+        throw new Error("Failed to get user ID after registration");
+      }
+
+      // Create a profile in the user_profiles table
+      const { error: profileError } = await supabase
+        .from("user_profiles")
+        .insert([
+          {
+            id: userId,
+            email: email,
+          },
+        ]);
+
+      if (profileError) throw profileError;
+
       alert("Check your email for the confirmation link");
       router.push("/(auth)/login");
     } catch (error: any) {
       setError(error.message || "Registration failed");
+      console.error("Registration error:", error);
     } finally {
       setLoading(false);
     }
@@ -31,9 +64,7 @@ const Register = () => {
   return (
     <ThemedView style={styles.container}>
       <Spacer />
-      <ThemedText style={styles.title}>
-        Register an Account
-      </ThemedText>
+      <ThemedText style={styles.title}>Register an Account</ThemedText>
 
       {error && <ThemedText style={styles.error}>{error}</ThemedText>}
 

@@ -1,13 +1,13 @@
 import React, { createContext, useState, useEffect, useContext } from "react";
 import supabase from "../services/supabaseClient";
-import { Session, User } from "@supabase/supabase-js";
+import { Session, User, AuthResponse } from "@supabase/supabase-js";
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string) => Promise<AuthResponse>; // Changed return type
   signOut: () => Promise<void>;
 }
 
@@ -53,10 +53,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (
+    email: string,
+    password: string
+  ): Promise<AuthResponse> => {
     try {
-      const { error } = await supabase.auth.signUp({ email, password });
-      if (error) throw error;
+      const response = await supabase.auth.signUp({ email, password });
+      if (response.error) throw response.error;
+      return response; // Return the full response
     } catch (error) {
       console.error("Error signing up:", error);
       throw error;
