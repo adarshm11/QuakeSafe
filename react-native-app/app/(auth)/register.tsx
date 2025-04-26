@@ -76,7 +76,7 @@ const Register = () => {
       <View style={styles.ambientGlow} />
       
       <Spacer height={40} />
-      <ThemedText style={styles.title}>
+      <ThemedText style={styles.title} type="title">
         Register for QuakeSafe
       </ThemedText>
 

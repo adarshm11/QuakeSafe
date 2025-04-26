@@ -43,9 +43,9 @@ const Login = () => {
     <ThemedView style={styles.container}>
       {/* Ambient glow background */}
       <View style={styles.ambientGlow} />
-      
+
       <Spacer height={40} />
-      <ThemedText style={styles.title}>
+      <ThemedText style={styles.title} type="title">
         Login to QuakeSafe
       </ThemedText>
 
@@ -78,9 +78,9 @@ const Login = () => {
 
       <Spacer height={30} />
 
-      <ThemedButton 
-        onPress={handleLogin} 
-        disabled={loading} 
+      <ThemedButton
+        onPress={handleLogin}
+        disabled={loading}
         style={styles.loginButton}
       >
         {loading ? (
@@ -91,10 +91,11 @@ const Login = () => {
       </ThemedButton>
 
       <Spacer height={60} />
-      
+
       <Link href="/register" replace>
         <ThemedText style={styles.registerText}>
-          Don't have an account? <Text style={styles.registerHighlight}>Register</Text>
+          Don't have an account?{" "}
+          <Text style={styles.registerHighlight}>Register</Text>
         </ThemedText>
       </Link>
     </ThemedView>
@@ -119,7 +120,7 @@ const styles = StyleSheet.create({
     height: width,
     borderRadius: width,
     backgroundColor: "rgba(183, 247, 64, 0.03)",
-    transform: [{scaleX: 1.5}]
+    transform: [{ scaleX: 1.5 }],
   },
   title: {
     fontSize: width > 400 ? 32 : 25,
@@ -172,5 +173,5 @@ const styles = StyleSheet.create({
   registerHighlight: {
     color: "#b7f740",
     fontWeight: "600",
-  }
+  },
 });
