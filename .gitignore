@@ -6,3 +6,5 @@ macenv/
 /backend/.env
 .python-version
 __pycache__/
+
+sjhacks

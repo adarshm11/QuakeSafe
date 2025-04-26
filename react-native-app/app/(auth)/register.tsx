@@ -1,17 +1,13 @@
 import React, { useState } from "react";
-import {
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  View,
-  Text,
-  ActivityIndicator,
-} from "react-native";
-import { router } from "expo-router";
+import { StyleSheet, TextInput, ActivityIndicator, Text } from "react-native";
+import { Link, router } from "expo-router";
 import { useAuth } from "../../context/AuthContext";
-import NavButton from "../components/NavButton";
+import { ThemedView } from "../../components/ThemedView";
+import { ThemedText } from "../../components/ThemedText";
+import Spacer from "../../components/Spacer";
+import ThemedButton from "../../components/ThemedButton";
 
-export default function RegisterScreen() {
+const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -23,8 +19,8 @@ export default function RegisterScreen() {
       setLoading(true);
       setError(null);
       await signUp(email, password);
-      alert("Check your email for confirmation link");
-      router.push("/screens/login" as any);
+      alert("Check your email for the confirmation link");
+      router.push("/(auth)/login");
     } catch (error: any) {
       setError(error.message || "Registration failed");
     } finally {
@@ -33,10 +29,13 @@ export default function RegisterScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Register</Text>
+    <ThemedView style={styles.container}>
+      <Spacer />
+      <ThemedText style={styles.title}>
+        Register an Account
+      </ThemedText>
 
-      {error && <Text style={styles.error}>{error}</Text>}
+      {error && <ThemedText style={styles.error}>{error}</ThemedText>}
 
       <TextInput
         style={styles.input}
@@ -57,36 +56,35 @@ export default function RegisterScreen() {
         secureTextEntry
       />
 
-      {/* Register button with loading state stays as a custom button */}
-      <TouchableOpacity
-        style={styles.button}
-        onPress={handleRegister}
-        disabled={loading}
-      >
+      <ThemedButton onPress={handleRegister} disabled={loading}>
         {loading ? (
-          <ActivityIndicator color="#fff" />
+          <ActivityIndicator color="#f2f2f2" />
         ) : (
-          <Text style={styles.buttonText}>Register</Text>
+          <Text style={{ color: "#f2f2f2" }}>Register</Text>
         )}
-      </TouchableOpacity>
+      </ThemedButton>
 
-      {/* Navigation link becomes NavButton */}
-      <NavButton to="/screens/login" label="Already have an account? Login" />
-    </View>
+      <Spacer height={100} />
+      <Link href="/login" replace>
+        <ThemedText style={{ textAlign: "center" }}>Login instead</ThemedText>
+      </Link>
+    </ThemedView>
   );
-}
+};
+
+export default Register;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
     justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
   },
   title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
     textAlign: "center",
+    fontSize: 18,
+    marginBottom: 30,
   },
   input: {
     height: 50,
@@ -95,19 +93,9 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginVertical: 10,
     paddingHorizontal: 10,
+    width: "100%",
     color: "#000",
     backgroundColor: "#fff",
-  },
-  button: {
-    backgroundColor: "#0a7ea4",
-    padding: 15,
-    borderRadius: 5,
-    alignItems: "center",
-    marginTop: 10,
-  },
-  buttonText: {
-    color: "#fff",
-    fontWeight: "bold",
   },
   error: {
     color: "red",
