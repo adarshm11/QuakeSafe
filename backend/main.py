@@ -13,8 +13,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 import io
 from groq import Groq
-from datetime import datetime
-import json
 
 app = FastAPI()
 load_dotenv()
