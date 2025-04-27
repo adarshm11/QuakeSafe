@@ -47,7 +47,7 @@ def get_image_by_id(supabase: Client, image_id: str) :
     return response.data
 
 def insert_safety_assessment(supabase: Client, image_id: str, safety_score: float, 
-                             estimated_magnitude_survivability: str, description: str) -> dict:
+                             estimated_magnitude_survivability: str, description: str):
     """Create a new safety assessment record."""
     data = {
         "image_id": image_id,
@@ -55,6 +55,7 @@ def insert_safety_assessment(supabase: Client, image_id: str, safety_score: floa
         "estimated_magnitude_survivability": estimated_magnitude_survivability,
         "description": description
     }
+
     try:
         response = supabase.from_('safety_assessments').insert(data).execute()
         return response.data
