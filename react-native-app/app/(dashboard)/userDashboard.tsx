@@ -300,6 +300,17 @@ const UserDashboard = () => {
     }
   };
 
+    // Reset function to clear all states
+    const resetDashboard = () => {
+      setImage(null);
+      setLocation(null);
+      setUploading(false);
+      setAnalysisResult(null);
+      setUseCurrentLocation(true);
+      setLocationName("");
+      setShowLocationInput(false);
+    };
+
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
@@ -323,65 +334,44 @@ const UserDashboard = () => {
           </TouchableOpacity>
         </View>
 
-        {showLocationInput && (
-          <View style={styles.locationInputContainer}>
-            <Text style={styles.locationLabel}>
-              Please specify location (Be specific: type in the address):
-            </Text>
-            <TextInput
-              style={styles.locationInput}
-              value={locationName}
-              onChangeText={setLocationName}
-              placeholder="Enter specific location..."
-            />
-            <TouchableOpacity
-              style={styles.submitButton}
-              onPress={submitManualLocation}
-            >
-              <Text style={styles.submitButtonText}>Submit</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+      {image && !uploading && !showLocationInput && (
+        <View style={styles.imageContainer}>
+          <Image source={{ uri: image }} style={styles.image} />
+          <Text style={styles.imageText}>Image Uploaded Successfully!</Text>
+        </View>
+      )}
 
-        {uploading && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#b7f740" />
-            <Text style={styles.loadingText}>Analyzing image...</Text>
-          </View>
-        )}
+      {analysisResult && (
+        <View style={styles.analysisContainer}>
+          <Text style={styles.analysisTitle}>Safety Analysis:</Text>
+          {typeof analysisResult === "string" ? (
+            <Text style={styles.analysisText}>{analysisResult}</Text>
+          ) : (
+            <>
+              <Text style={styles.analysisLabel}>Description:</Text>
+              <Text style={styles.analysisText}>
+                {analysisResult.Description}
+              </Text>
 
-        {image && !uploading && !showLocationInput && (
-          <View style={styles.imageContainer}>
-            <Image source={{ uri: image }} style={styles.image} />
-            <Text style={styles.imageText}>Image Uploaded Successfully!</Text>
-          </View>
-        )}
+              <Text style={styles.analysisLabel}>Safety Score:</Text>
+              <Text style={styles.analysisText}>{analysisResult.Score}</Text>
 
-        {analysisResult && (
-          <View style={styles.analysisContainer}>
-            <Text style={styles.analysisTitle}>Safety Analysis:</Text>
-            {typeof analysisResult === "string" ? (
-              <Text style={styles.analysisText}>{analysisResult}</Text>
-            ) : (
-              <>
-                <Text style={styles.analysisLabel}>Description:</Text>
-                <Text style={styles.analysisText}>
-                  {analysisResult.Description}
-                </Text>
+              <Text style={styles.analysisLabel}>Magnitude Survivability:</Text>
+              <Text style={styles.analysisText}>
+                {analysisResult["Magnitude Survivability"]}
+              </Text>
+            </>
+          )}
+        </View>
+      )}
+    {/* Conditionally Render the Done Button */}
+    {image && !uploading && (
+      <TouchableOpacity style={styles.doneButton} onPress={resetDashboard}>
+        <Text style={styles.doneButtonText}>Done</Text>
+      </TouchableOpacity>
+    )}
+    </View>
 
-                <Text style={styles.analysisLabel}>Safety Score:</Text>
-                <Text style={styles.analysisText}>{analysisResult.Score}</Text>
-
-                <Text style={styles.analysisLabel}>Magnitude Survivability:</Text>
-                <Text style={styles.analysisText}>
-                  {analysisResult["Magnitude Survivability"]}
-                </Text>
-              </>
-            )}
-          </View>
-        )}
-      </View>
-    </KeyboardAvoidingView>
   );
 };
 
@@ -524,6 +514,21 @@ const styles = StyleSheet.create({
   },
   submitButtonText: {
     color: "#b7f740", 
+    fontWeight: "bold",
+  },
+  doneButton: {
+    backgroundColor: "rgba(183, 247, 64, 0.1)", // Matches existing button styles
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    alignItems: "center",
+    marginTop: 20,
+    borderWidth: 1,
+    borderColor: "rgba(183, 247, 64, 0.3)", // Matches existing border styles
+  },
+  doneButtonText: {
+    color: "#b7f740", // Matches existing text color
+    fontSize: 16,
     fontWeight: "bold",
   },
 });
