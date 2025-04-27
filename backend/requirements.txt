@@ -11,3 +11,4 @@ asyncpg # If you're using PostgreSQL with Supabase
 databases # For async database queries
 python-multipart
 Pillow
+groq
