@@ -6,7 +6,7 @@ import uuid
 from dotenv import load_dotenv
 import os
 from pydantic import BaseModel
-from db.supabase_client import insert_image_entry, insert_safety_assessment, insert_chat_message
+from db.supabase_client import insert_image_entry, insert_safety_assessment, insert_chat_message,insert_emergency_action
 from supabase import create_client
 from typing import Optional
 from fastapi.middleware.cors import CORSMiddleware
@@ -280,6 +280,27 @@ async def analyze(
         )
         print(f"[LOG] Safety assessment insertion response: {response}")
         
+        action_taken = 'Nothing to worry about'
+        try:
+            magnitude_value = float(magnitude_survivability)
+            if magnitude_value < 6.0:  # Example threshold for emergency action
+                action_taken = "Leave Immediately"
+            elif magnitude_value < 7.0:
+                action_taken = "Caution: Building Needs Strengthening"
+            else:
+                action_taken = "Safe"
+        except ValueError:
+            action_taken = "Unable to determine action due to invalid magnitude value"
+
+        # Insert emergency action into the database
+        emergency_action_response = insert_emergency_action(
+            supabase_client,
+            user_id=user_id,
+            action_taken=action_taken
+        )
+
+        print("[LOG] Emergency action insertion response: ", emergency_action_response)
+
         if isinstance(response, dict) and "error" in response:
             print(f"[ERROR] Safety assessment insertion failed: {response['error']}")
             return {'error': response['error']}

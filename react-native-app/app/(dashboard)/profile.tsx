@@ -31,13 +31,10 @@ const Profile = () => {
 
       {/* Profile Header */}
       <View style={styles.header}>
-        <Image
-          source={{ uri: "https://via.placeholder.com/150" }} // Replace with actual user avatar URL
-          style={styles.avatar}
-        />
+       
         
-        <Text style={styles.name}>{user?.name || "No name available"}</Text>
-        <Text style={styles.email}>{user?.email || "No email available"}</Text>
+        <Text style={styles.name}>{user?.name }</Text>
+        <Text style={styles.email}>{user?.email}</Text>
       </View>
 
       {/* Profile Details */}

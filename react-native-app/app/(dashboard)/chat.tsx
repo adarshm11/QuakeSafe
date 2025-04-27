@@ -3,7 +3,6 @@ import { View, TextInput, TouchableOpacity, StyleSheet, Dimensions, ScrollView, 
 import { ThemedView } from "../../components/ThemedView";
 import { ThemedText } from "../../components/ThemedText";
 import type { ScrollView as ScrollViewType } from "react-native";
-
 const { width } = Dimensions.get("window");
 
 const Chat = () => {
