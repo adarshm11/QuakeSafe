@@ -5,7 +5,6 @@ import { useNavigation } from "@react-navigation/native";
 import { Pressable, Text, StyleSheet } from "react-native";
 import UserDashboard from "./userDashboard";
 import Profile from "./profile";
-import Settings from "./settings";
 import Maps from "./Maps";
 import Chat from "./chat";
 
@@ -70,13 +69,19 @@ export default function DashboardLayout() {
         component={UserDashboard}
         options={{ title: "Dashboard" }}
       />
-      <Tab.Screen name="Maps" component={Maps} options={{ title: "Maps" }} />
-      <Tab.Screen name="Chat" component={Chat} options={{ title: "Chat" }} />
-      <Tab.Screen
-        name="Settings"
-        component={Settings}
-        options={{ title: "Settings" }}
+
+      <Tab.Screen 
+        name="Maps" 
+        component={Maps} 
+        options={{ title: "Maps" }} 
       />
+
+      <Tab.Screen 
+        name="Chat" 
+        component={Chat} 
+        options={{ title: "Chat" }} 
+      />
+      
       <Tab.Screen
         name="Profile"
         component={Profile}
