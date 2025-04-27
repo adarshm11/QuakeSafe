@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   ScrollView, // Import ScrollView
+  Linking, // Import Linking
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
@@ -311,6 +312,34 @@ const UserDashboard = () => {
     setShowLocationInput(false);
   };
 
+  // Handler for "Call 911" (does NOT actually call)
+  const handleCall911 = () => {
+    Alert.alert("Emergency Call", "This would call 911 in a real emergency.", [
+      { text: "OK" },
+    ]);
+  };
+
+  const handleSendLocationToContact = async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("Permission Denied", "Location permission is required.");
+        return;
+      }
+      const currentLocation = await Location.getCurrentPositionAsync({});
+      const { latitude, longitude } = currentLocation.coords;
+      const mapsUrl = `https://maps.google.com/?q=${latitude},${longitude}`;
+      const emergencyNumber = "1234567890"; // Replace with actual contact
+      const message = `I'm at this location: ${mapsUrl}`;
+      const smsUrl = `sms:${emergencyNumber}?body=${encodeURIComponent(
+        message
+      )}`;
+      Linking.openURL(smsUrl);
+    } catch (error) {
+      Alert.alert("Error", "Could not get your location.");
+    }
+  };
+
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
@@ -331,12 +360,45 @@ const UserDashboard = () => {
           </Text>
 
           <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.actionButton} onPress={pickImage}>
-              <Text style={styles.actionButtonText}>Upload Image</Text>
+            <TouchableOpacity
+              style={[styles.actionButton, styles.highlightedButton]}
+              onPress={pickImage}
+            >
+              <Text
+                style={[styles.actionButtonText, styles.highlightedButtonText]}
+              >
+                Upload Image
+              </Text>
             </TouchableOpacity>
             <View style={styles.buttonSpacer} />
-            <TouchableOpacity style={styles.actionButton} onPress={takePhoto}>
-              <Text style={styles.actionButtonText}>Take Photo</Text>
+            <TouchableOpacity
+              style={[styles.actionButton, styles.highlightedButton]}
+              onPress={takePhoto}
+            >
+              <Text
+                style={[styles.actionButtonText, styles.highlightedButtonText]}
+              >
+                Take Photo
+              </Text>
+            </TouchableOpacity>
+          </View>
+          {/* Move Call 911 below as a full-width button */}
+          <View
+            style={{ width: "100%", alignItems: "center", marginBottom: 20 }}
+          >
+            <TouchableOpacity
+              style={[styles.actionButton, { width: "80%" }]}
+              onPress={handleCall911}
+            >
+              <Text style={styles.actionButtonText}>Call 911</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionButton, { width: "80%", marginTop: 10 }]}
+              onPress={handleSendLocationToContact}
+            >
+              <Text style={styles.actionButtonText}>
+                Send Location to Emergency Contact
+              </Text>
             </TouchableOpacity>
           </View>
 
@@ -393,16 +455,40 @@ const UserDashboard = () => {
                   </Text>
 
                   <Text style={styles.analysisLabel}>Safety Score:</Text>
-                  <Text style={styles.analysisText}>
-                    {analysisResult.Score}
-                  </Text>
+                  <View style={styles.scoreBarBackground}>
+                    <View
+                      style={[
+                        styles.scoreBarFill,
+                        {
+                          width: `${Math.max(
+                            0,
+                            Math.min(100, analysisResult.Score)
+                          )}%`,
+                        },
+                      ]}
+                    />
+                    <Text style={styles.scoreBarText}>
+                      {analysisResult.Score}/100
+                    </Text>
+                  </View>
 
                   <Text style={styles.analysisLabel}>
                     Magnitude Survivability:
                   </Text>
-                  <Text style={styles.analysisText}>
-                    {analysisResult["Magnitude Survivability"]}
-                  </Text>
+                  <View
+                    style={[
+                      styles.survivabilityBadge,
+                      analysisResult["Magnitude Survivability"] === "High"
+                        ? styles.survivabilityHigh
+                        : analysisResult["Magnitude Survivability"] === "Medium"
+                        ? styles.survivabilityMedium
+                        : styles.survivabilityLow,
+                    ]}
+                  >
+                    <Text style={styles.survivabilityBadgeText}>
+                      {analysisResult["Magnitude Survivability"]}
+                    </Text>
+                  </View>
                 </>
               )}
             </View>
@@ -585,6 +671,64 @@ const styles = StyleSheet.create({
   doneButtonText: {
     color: "#b7f740", // Matches existing text color
     fontSize: 16,
+    fontWeight: "bold",
+  },
+  highlightedButton: {
+    backgroundColor: "#b7f740",
+    borderColor: "#b7f740",
+    shadowColor: "#b7f740",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  highlightedButtonText: {
+    color: "#181818",
+  },
+  scoreBarBackground: {
+    width: "100%",
+    height: 24,
+    backgroundColor: "#222",
+    borderRadius: 12,
+    marginBottom: 8,
+    marginTop: 2,
+    overflow: "hidden",
+    justifyContent: "center",
+  },
+  scoreBarFill: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    bottom: 0,
+    backgroundColor: "#8ea82d",
+    borderRadius: 12,
+  },
+  scoreBarText: {
+    color: "#fff", // Changed from "#181818" to white
+    fontWeight: "bold",
+    textAlign: "center",
+    width: "100%",
+    zIndex: 1,
+  },
+  survivabilityBadge: {
+    alignSelf: "flex-start",
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginBottom: 8,
+    marginTop: 2,
+  },
+  survivabilityHigh: {
+    backgroundColor: "#b7f740",
+  },
+  survivabilityMedium: {
+    backgroundColor: "#ffe066",
+  },
+  survivabilityLow: {
+    backgroundColor: "#ff6b6b",
+  },
+  survivabilityBadgeText: {
+    color: "#181818",
     fontWeight: "bold",
   },
 });
