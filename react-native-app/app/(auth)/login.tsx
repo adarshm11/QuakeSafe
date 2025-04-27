@@ -7,6 +7,8 @@ import {
   Dimensions,
   Animated,
   View,
+  KeyboardAvoidingView, // Import KeyboardAvoidingView
+  Platform, // Import Platform
 } from "react-native";
 import { Link } from "expo-router";
 import { useAuth } from "../../context/AuthContext";
@@ -40,65 +42,71 @@ const Login = () => {
   };
 
   return (
-    <ThemedView style={styles.container}>
-      {/* Ambient glow background */}
-      <View style={styles.ambientGlow} />
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : -100} // Adjust offset as needed
+    >
+      <ThemedView style={styles.container}>
+        {/* Ambient glow background */}
+        <View style={styles.ambientGlow} />
 
-      <Spacer height={40} />
-      <ThemedText style={styles.title} type="title">
-        Login to QuakeSafe
-      </ThemedText>
-
-      <ThemedText style={styles.subtitle}>
-        Access your personalized safety information
-      </ThemedText>
-
-      {error && <ThemedText style={styles.error}>{error}</ThemedText>}
-
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        placeholderTextColor="#888"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-
-      <Spacer height={15} />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        placeholderTextColor="#888"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-
-      <Spacer height={30} />
-
-      <ThemedButton
-        onPress={handleLogin}
-        disabled={loading}
-        style={styles.loginButton}
-      >
-        {loading ? (
-          <ActivityIndicator color="#000" />
-        ) : (
-          <Text style={styles.loginButtonText}>Log In</Text>
-        )}
-      </ThemedButton>
-
-      <Spacer height={60} />
-
-      <Link href="/register" replace>
-        <ThemedText style={styles.registerText}>
-          Don't have an account?{" "}
-          <Text style={styles.registerHighlight}>Register</Text>
+        <Spacer height={40} />
+        <ThemedText style={styles.title} type="title">
+          Login to QuakeSafe
         </ThemedText>
-      </Link>
-    </ThemedView>
+
+        <ThemedText style={styles.subtitle}>
+          Access your personalized safety information
+        </ThemedText>
+
+        {error && <ThemedText style={styles.error}>{error}</ThemedText>}
+
+        <TextInput
+          style={styles.input}
+          placeholder="Email"
+          placeholderTextColor="#888"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+
+        <Spacer height={15} />
+
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          placeholderTextColor="#888"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
+
+        <Spacer height={30} />
+
+        <ThemedButton
+          onPress={handleLogin}
+          disabled={loading}
+          style={styles.loginButton}
+        >
+          {loading ? (
+            <ActivityIndicator color="#000" />
+          ) : (
+            <Text style={styles.loginButtonText}>Log In</Text>
+          )}
+        </ThemedButton>
+
+        <Spacer height={60} />
+
+        <Link href="/register" replace>
+          <ThemedText style={styles.registerText}>
+            Don't have an account?{" "}
+            <Text style={styles.registerHighlight}>Register</Text>
+          </ThemedText>
+        </Link>
+      </ThemedView>
+    </KeyboardAvoidingView>
   );
 };
 
