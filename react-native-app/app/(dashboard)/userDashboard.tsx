@@ -13,8 +13,11 @@ import {
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
-import supabase from "../../services/supabaseClient"; 
-import axios from "axios"; 
+import supabase from "../../services/supabaseClient";
+import axios from "axios";
+
+
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 const UserDashboard = () => {
   const [image, setImage] = useState<string | null>(null);
@@ -26,7 +29,7 @@ const UserDashboard = () => {
   const [uploading, setUploading] = useState<boolean>(false);
   const [analysisResult, setAnalysisResult] = useState<string | null>(null);
   const [useCurrentLocation, setUseCurrentLocation] = useState<boolean>(true);
-  const [manualLocation, setManualLocation] = useState<string>("");
+  const [locationName, setLocationName] = useState<string>("");
   const [showLocationInput, setShowLocationInput] = useState<boolean>(false);
 
   // Get user ID and location on component mount
@@ -198,13 +201,11 @@ const UserDashboard = () => {
       const currentLocation = await getCurrentLocation();
       if (!currentLocation) return;
 
-      formData.append("latitude", currentLocation.latitude.toString());
       formData.append("longitude", currentLocation.longitude.toString());
-      formData.append("location_type", "gps");
+      formData.append("latitude", currentLocation.latitude.toString());
     } else {
       // Use manual location string
-      formData.append("manual_location", manualLocation);
-      formData.append("location_type", "manual");
+      formData.append("location_name", locationName);
     }
 
     setUploading(true);
@@ -213,7 +214,7 @@ const UserDashboard = () => {
     try {
       // Upload to your backend
       const response = await axios.post(
-        "http://localhost:8000/analyze",
+        `${API_URL}/analyze`,
         formData,
         {
           headers: {
@@ -237,7 +238,7 @@ const UserDashboard = () => {
 
   // Function to handle manual location submission
   const submitManualLocation = () => {
-    if (!manualLocation.trim()) {
+    if (!locationName.trim()) {
       Alert.alert(
         "Location Required",
         "Please enter a specific location (e.g., 'San Jose City Hall')"
@@ -270,8 +271,8 @@ const UserDashboard = () => {
           </Text>
           <TextInput
             style={styles.locationInput}
-            value={manualLocation}
-            onChangeText={setManualLocation}
+            value={locationName}
+            onChangeText={setLocationName}
             placeholder="Enter specific location..."
           />
           <TouchableOpacity

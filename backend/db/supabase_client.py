@@ -54,7 +54,6 @@ def insert_safety_assessment(supabase: Client, image_id: str, safety_score: floa
         "safety_score": safety_score,
         "estimated_magnitude_survivability": estimated_magnitude_survivability,
         "description": description
-        
     }
 
     try:
