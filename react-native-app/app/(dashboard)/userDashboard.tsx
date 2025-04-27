@@ -316,19 +316,20 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
-    backgroundColor: "#f9f9f9",
+    backgroundColor: "#0a0a0a",
   },
   title: {
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 20,
     textAlign: "center",
+    color: "#b7f740",
   },
   subtitle: {
     fontSize: 16,
     textAlign: "center",
     marginBottom: 30,
-    color: "#555",
+    color: "#e0e0e0",
   },
   buttonContainer: {
     flexDirection: "row",
