@@ -1,4 +1,8 @@
-# QuakeSafe
+# QuakeSafe 
+# Software Architecture
+![ezgif-7cb973ace77d85](https://github.com/user-attachments/assets/0f9b9d1a-ce4c-43f5-a0e2-a877d811122f)
+
+## Introduction
 Per the United States Geological Survey (USGS), nearly 400 earthquakes have occurred in the South Bay Area in the last calendar year alone. Due to its proximity to multiple fault lines, the Bay Area, and particularly San Jose, is at extreme risk for earthquakes year-round. While little can be done to prevent earthquakes, which are natural, unpredictable events, society often falls short of implementing proactive measures to minimize the damage that earthquakes can cause. This is especially true in metropolitan areas like San Jose, where the urban landscape raises the risk of potential property damage and mortality due to earthquakes. This is why we built QuakeSafe, an earthquake preparation and safety app designed for the citizens of San Jose.  
 ## How It Works
 QuakeSafe utilizes cutting-edge AI technology to evaluate places around the city for risks of earthquake damage. Users can take a picture of an area of the city and upload it to the QuakeSafe app, where we will determine how safe the area is in event of an earthquake. By highlighting which areas around the city are safe, QuakeSafe helps direct the city's leaders to improving infrastructure in places where earthquake safety is a legitimate risk.  
