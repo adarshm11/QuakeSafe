@@ -10,7 +10,8 @@ import {
   ActivityIndicator,
   TextInput,
   TouchableOpacity,
-  KeyboardAvoidingView, // Import KeyboardAvoidingView
+  KeyboardAvoidingView,
+  ScrollView, // Import ScrollView
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
@@ -245,7 +246,6 @@ const UserDashboard = () => {
       console.log("Sending data to server...");
 
       // Make the API request
-
       const response = await axios.post(`${API_URL}/analyze`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
@@ -317,62 +317,107 @@ const UserDashboard = () => {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={Platform.OS === "ios" ? 0 : -100} // Adjust offset as needed
     >
-      <View style={styles.container}>
-        <View style={styles.ambientGlow} />
-        <Text style={styles.title}>Earthquake Safety Dashboard</Text>
-        <Text style={styles.subtitle}>
-          Upload an image of your city to help us analyze safety measures.
-        </Text>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollViewContent}
+        showsVerticalScrollIndicator={true}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.container}>
+          <View style={styles.ambientGlow} />
+          <Text style={styles.title}>Earthquake Safety Dashboard</Text>
+          <Text style={styles.subtitle}>
+            Upload an image of your city to help us analyze safety measures.
+          </Text>
 
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.actionButton} onPress={pickImage}>
-            <Text style={styles.actionButtonText}>Upload Image</Text>
-          </TouchableOpacity>
-          <View style={styles.buttonSpacer} />
-          <TouchableOpacity style={styles.actionButton} onPress={takePhoto}>
-            <Text style={styles.actionButtonText}>Take Photo</Text>
-          </TouchableOpacity>
-        </View>
-
-        {image && !uploading && !showLocationInput && (
-          <View style={styles.imageContainer}>
-            <Image source={{ uri: image }} style={styles.image} />
-            <Text style={styles.imageText}>Image Uploaded Successfully!</Text>
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity style={styles.actionButton} onPress={pickImage}>
+              <Text style={styles.actionButtonText}>Upload Image</Text>
+            </TouchableOpacity>
+            <View style={styles.buttonSpacer} />
+            <TouchableOpacity style={styles.actionButton} onPress={takePhoto}>
+              <Text style={styles.actionButtonText}>Take Photo</Text>
+            </TouchableOpacity>
           </View>
-        )}
 
-        {analysisResult && (
-          <View style={styles.analysisContainer}>
-            <Text style={styles.analysisTitle}>Safety Analysis:</Text>
-            {typeof analysisResult === "string" ? (
-              <Text style={styles.analysisText}>{analysisResult}</Text>
-            ) : (
-              <>
-                <Text style={styles.analysisLabel}>Description:</Text>
-                <Text style={styles.analysisText}>
-                  {analysisResult.Description}
-                </Text>
+          {showLocationInput && (
+            <View style={styles.locationInputContainer}>
+              <Text style={styles.locationLabel}>
+                Please specify location (Be specific: type in the address):
+              </Text>
+              <TextInput
+                style={styles.locationInput}
+                value={locationName}
+                onChangeText={setLocationName}
+                placeholder="Enter specific location..."
+                placeholderTextColor="#666"
+              />
+              <TouchableOpacity
+                style={styles.submitButton}
+                onPress={submitManualLocation}
+              >
+                <Text style={styles.submitButtonText}>Submit</Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
-                <Text style={styles.analysisLabel}>Safety Score:</Text>
-                <Text style={styles.analysisText}>{analysisResult.Score}</Text>
+          {uploading && (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#b7f740" />
+              <Text style={styles.loadingText}>Analyzing image...</Text>
+            </View>
+          )}
 
-                <Text style={styles.analysisLabel}>
-                  Magnitude Survivability:
+          {image &&
+            !uploading &&
+            !showLocationInput &&
+            (!analysisResult || typeof analysisResult !== "string") && (
+              <View style={styles.imageContainer}>
+                <Image source={{ uri: image }} style={styles.image} />
+                <Text style={styles.imageText}>
+                  Image Uploaded Successfully!
                 </Text>
-                <Text style={styles.analysisText}>
-                  {analysisResult["Magnitude Survivability"]}
-                </Text>
-              </>
+              </View>
             )}
-          </View>
-        )}
-        {/* Conditionally Render the Done Button */}
-        {image && !uploading && (
-          <TouchableOpacity style={styles.doneButton} onPress={resetDashboard}>
-            <Text style={styles.doneButtonText}>Done</Text>
-          </TouchableOpacity>
-        )}
-      </View>
+
+          {analysisResult && (
+            <View style={styles.analysisContainer}>
+              <Text style={styles.analysisTitle}>Safety Analysis:</Text>
+              {typeof analysisResult === "string" ? (
+                <Text style={styles.analysisText}>{analysisResult}</Text>
+              ) : (
+                <>
+                  <Text style={styles.analysisLabel}>Description:</Text>
+                  <Text style={styles.analysisText}>
+                    {analysisResult.Description}
+                  </Text>
+
+                  <Text style={styles.analysisLabel}>Safety Score:</Text>
+                  <Text style={styles.analysisText}>
+                    {analysisResult.Score}
+                  </Text>
+
+                  <Text style={styles.analysisLabel}>
+                    Magnitude Survivability:
+                  </Text>
+                  <Text style={styles.analysisText}>
+                    {analysisResult["Magnitude Survivability"]}
+                  </Text>
+                </>
+              )}
+            </View>
+          )}
+          {/* Conditionally Render the Done Button */}
+          {image && !uploading && (
+            <TouchableOpacity
+              style={styles.doneButton}
+              onPress={resetDashboard}
+            >
+              <Text style={styles.doneButtonText}>Done</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 };
@@ -380,6 +425,14 @@ const UserDashboard = () => {
 export default UserDashboard;
 
 const styles = StyleSheet.create({
+  scrollView: {
+    flex: 1,
+    backgroundColor: "#0a0a0a",
+  },
+  scrollViewContent: {
+    flexGrow: 1,
+    paddingBottom: 30, // Add extra padding at the bottom for scrolling
+  },
   container: {
     flex: 1,
     justifyContent: "center",
@@ -403,6 +456,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: "center",
     color: "#b7f740", // Matches profile.tsx title color
+    marginTop: 50, // Add more top margin for scrolling
   },
   subtitle: {
     fontSize: 16,
@@ -481,7 +535,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginTop: 10,
     marginBottom: 5,
-    color: "#555",
+    color: "#a0a0a0", // Updated to match the app's color scheme
   },
   locationInputContainer: {
     width: "100%",
