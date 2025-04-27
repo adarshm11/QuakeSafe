@@ -56,6 +56,23 @@ def get_image_by_id(supabase: Client, image_id: str):
         print(f'Error accessing DB: {e}')
         return None
 
+def fetch_all_images(supabase: Client):
+    """Retrieve all images with location data."""
+    try:
+        response = supabase.from_('images').select('*').execute()
+        
+        # Check for errors in the response
+        if hasattr(response, 'error') and response.error:
+            print(f"Error fetching images: {response.error}")
+            return []
+        else:
+            print(f"Fetched data: {len(response.data)} records")
+            return response.data
+    except Exception as e:
+        print(f"Exception in fetch_all_images: {str(e)}")
+        return []
+
+
 def insert_safety_assessment(supabase: Client, image_id: str, safety_score: float, 
                              estimated_magnitude_survivability: str, description: str):
     """Create a new safety assessment record."""
@@ -75,6 +92,11 @@ def insert_safety_assessment(supabase: Client, image_id: str, safety_score: floa
     except Exception as e:
         print(f'Error accessing DB: {e}')
         return None
+    
+def get_safety_assessment_by_image(supabase: Client, image_id: str) -> list:
+    """Retrieve all safety assessments for a specific image."""
+    response = supabase.from_('safety_assessments').select('*').eq('image_id', image_id).execute()
+    return response.data
 
 def insert_chat_message(supabase: Client, user_id: str, user_message: str, ai_response: str, chat_context: str, 
                         timestamp: str = str(datetime.now())) -> dict:
