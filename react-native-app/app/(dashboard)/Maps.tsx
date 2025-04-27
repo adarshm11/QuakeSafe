@@ -33,7 +33,6 @@ const Maps = () => {
   useEffect(() => {
     const fetchImageLocations = async () => {
       try {
-        console.log("API_URL:", API_URL);
         setIsLoading(true);
         setFetchError(null);
 
