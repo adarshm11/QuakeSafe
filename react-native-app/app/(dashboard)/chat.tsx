@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { View, TextInput, TouchableOpacity, StyleSheet, Dimensions, ScrollView, ActivityIndicator } from "react-native";
+import { View, TextInput, TouchableOpacity, StyleSheet, Dimensions, ScrollView, ActivityIndicator, Keyboard, KeyboardAvoidingView, Platform, TouchableWithoutFeedback } from "react-native";
 import { ThemedView } from "../../components/ThemedView";
 import { ThemedText } from "../../components/ThemedText";
 import type { ScrollView as ScrollViewType } from "react-native";
@@ -83,76 +83,84 @@ const Chat = () => {
         }
     };
 
-  return (
-    <ThemedView style={styles.container}>
-      {/* Ambient glow background */}
-      <View style={styles.ambientGlow} />
-      
-      {/* Header section */}
-      <View style={styles.header}>
-        <ThemedText style={styles.title} type="title">
-          QuakeSafe Assistant
-        </ThemedText>
-        <ThemedText style={styles.subtitle}>
-          Get real-time earthquake safety information
-        </ThemedText>
-      </View>
-
-    {/* Chat messages */}
-    <ScrollView 
-        style={styles.chatContainer}
-        ref={scrollViewRef}
-        onContentSizeChange={() => {
-            scrollViewRef.current?.scrollToEnd({ animated: true });
-          }}
+    return (
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <KeyboardAvoidingView
+          style={{ flex: 1, backgroundColor: "#0a0a0a" }}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
         >
-
-        {messages.map((message, index) => (
-          <View
-            key={index}
-            style={[
-              styles.messageBubble,
-              message.sender === "user" ? styles.userBubble : styles.assistantBubble,
-            ]}
-          >
-            <ThemedText style={styles.messageText}>{message.text}</ThemedText>
-          </View>
-        ))}
-        
-        {/* Loading indicator */}
-        {isLoading && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="small" color="#b7f740" />
-            <ThemedText style={styles.loadingText}>QuakeSafe Assistant is responding...</ThemedText>
-          </View>
-        )}
-    </ScrollView>
-
-      {/* Input Area */}
-      <View style={styles.inputArea}>
-        <TextInput
-          style={styles.textInput}
-          placeholder="Ask QuakeSafe Assistant..."
-          placeholderTextColor="#888"
-          value={userInput}
-          onChangeText={setUserInput}
-          onSubmitEditing={sendMessage}
-          returnKeyType="send"
-          multiline={false}
-        />
-        <TouchableOpacity 
-          style={[
-            styles.sendButton,
-            !userInput.trim() ? styles.sendButtonDisabled : {}
-          ]} 
-          onPress={sendMessage}
-          disabled={!userInput.trim() || isLoading}
-        >
-          <ThemedText style={styles.sendButtonText}>Send</ThemedText>
-        </TouchableOpacity>
-      </View>
-    </ThemedView>
-  );
+          <ThemedView style={[styles.container, { backgroundColor: "#0a0a0a" }]}>
+            {/* Ambient glow background */}
+            <View style={styles.ambientGlow} />
+            
+            {/* Header */}
+            <View style={styles.header}>
+              <ThemedText style={styles.title} type="title">
+                QuakeSafe Assistant
+              </ThemedText>
+              <ThemedText style={styles.subtitle}>
+                Get real-time earthquake safety information
+              </ThemedText>
+            </View>
+    
+            {/* Chat */}
+            <ScrollView 
+              style={styles.chatContainer}
+              ref={scrollViewRef}
+              onContentSizeChange={() => {
+                scrollViewRef.current?.scrollToEnd({ animated: true });
+              }}
+              keyboardShouldPersistTaps="handled"
+            >
+              {messages.map((message, index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.messageBubble,
+                    message.sender === "user" ? styles.userBubble : styles.assistantBubble,
+                  ]}
+                >
+                  <ThemedText style={styles.messageText}>{message.text}</ThemedText>
+                </View>
+              ))}
+              
+              {/* Loading spinner */}
+              {isLoading && (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="small" color="#b7f740" />
+                  <ThemedText style={styles.loadingText}>QuakeSafe Assistant is responding...</ThemedText>
+                </View>
+              )}
+            </ScrollView>
+    
+            {/* Input */}
+            <View style={styles.inputArea}>
+              <TextInput
+                style={styles.textInput}
+                placeholder="Ask QuakeSafe Assistant..."
+                placeholderTextColor="#888"
+                value={userInput}
+                onChangeText={setUserInput}
+                onSubmitEditing={sendMessage}
+                returnKeyType="send"
+                multiline={false}
+              />
+              <TouchableOpacity 
+                style={[
+                  styles.sendButton,
+                  !userInput.trim() ? styles.sendButtonDisabled : {}
+                ]} 
+                onPress={sendMessage}
+                disabled={!userInput.trim() || isLoading}
+              >
+                <ThemedText style={styles.sendButtonText}>Send</ThemedText>
+              </TouchableOpacity>
+            </View>
+          </ThemedView>
+        </KeyboardAvoidingView>
+      </TouchableWithoutFeedback>
+    );    
 };
 
 export default Chat;
