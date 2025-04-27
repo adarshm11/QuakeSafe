@@ -8,6 +8,7 @@ import {
   ScrollView,
   TextInput,
   Alert,
+  SafeAreaView,
 } from "react-native";
 import { useAuth } from "../../context/AuthContext"; // Import useAuth
 
@@ -27,80 +28,93 @@ const Profile = () => {
     typeof text === "string" ? text : fallback;
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* Ambient Glow */}
-      <View style={styles.ambientGlow} />
-
-      {/* Profile Header */}
-      <View style={styles.header}>
-        <Image
-          source={{ uri: "https://via.placeholder.com/150" }}
-          style={styles.avatar}
-        />
-        <Text style={styles.name}>
-          {safeText(user?.name, "No name available")}
-        </Text>
-        <Text style={styles.email}>
-          {safeText(user?.email, "No email available")}
-        </Text>
-      </View>
-
-      {/* Profile Details */}
-      <View style={styles.detailsCard}>
-        <Text style={styles.cardTitle}>Profile Details</Text>
-
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Location:</Text>
-          <Text style={styles.detailValue}>San Jose, CA</Text>
-        </View>
-
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Phone:</Text>
-          {isEditing ? (
-            <TextInput
-              style={styles.detailInput}
-              value={phone}
-              onChangeText={setPhone}
-              underlineColorAndroid="transparent"
-              placeholder="Enter your phone"
-              placeholderTextColor="#888"
-            />
-          ) : (
-            <Text style={styles.detailValue}>{phone}</Text>
-          )}
-        </View>
-
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Account Created:</Text>
-          <Text style={styles.detailValue}>{today}</Text>
-        </View>
-      </View>
-
-      {/* Edit Profile Button */}
-      <TouchableOpacity
-        style={styles.editButton}
-        onPress={() => (isEditing ? saveChanges() : setIsEditing(true))}
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.editButtonText}>
-          {isEditing ? "Save Changes" : "Edit Profile"}
-        </Text>
-      </TouchableOpacity>
+        {/* Ambient Glow */}
+        <View style={styles.ambientGlow} />
 
-      {/* Logout Button */}
-      <TouchableOpacity style={styles.logoutButton}>
-        <Text style={styles.logoutButtonText}>Logout</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        {/* Profile Header */}
+        <View style={styles.header}>
+          <Image
+            source={{ uri: "https://via.placeholder.com/150" }}
+            style={styles.avatar}
+          />
+          <Text style={styles.name}>
+            {safeText(user?.name, "No name available")}
+          </Text>
+          <Text style={styles.email}>
+            {safeText(user?.email, "No email available")}
+          </Text>
+        </View>
+
+        {/* Profile Details */}
+        <View style={styles.detailsCard}>
+          <Text style={styles.cardTitle}>Profile Details</Text>
+
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Location:</Text>
+            <Text style={styles.detailValue}>San Jose, CA</Text>
+          </View>
+
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Phone:</Text>
+            {isEditing ? (
+              <TextInput
+                style={styles.detailInput}
+                value={phone}
+                onChangeText={setPhone}
+                underlineColorAndroid="transparent"
+                placeholder="Enter your phone"
+                placeholderTextColor="#888"
+              />
+            ) : (
+              <Text style={styles.detailValue}>{phone}</Text>
+            )}
+          </View>
+
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Account Created:</Text>
+            <Text style={styles.detailValue}>{today}</Text>
+          </View>
+        </View>
+
+        {/* Edit Profile Button */}
+        <TouchableOpacity
+          style={styles.editButton}
+          onPress={() => (isEditing ? saveChanges() : setIsEditing(true))}
+        >
+          <Text style={styles.editButtonText}>
+            {isEditing ? "Save Changes" : "Edit Profile"}
+          </Text>
+        </TouchableOpacity>
+
+        {/* Logout Button */}
+        <TouchableOpacity style={styles.logoutButton}>
+          <Text style={styles.logoutButtonText}>Logout</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 export default Profile;
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#0a0a0a", // Match the app background color
+  },
+  scrollView: {
+    backgroundColor: "#0a0a0a", // Match the app background color
+    flex: 1,
+  },
   container: {
     flexGrow: 1,
     padding: 20,
-    backgroundColor: "#0a0a0a",
     position: "relative",
   },
   ambientGlow: {
