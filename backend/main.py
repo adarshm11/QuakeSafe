@@ -119,6 +119,7 @@ async def analyze_image_with_claude(image_url: str):
 
 def parse_claude_response(response_text: str) -> dict:
     '''Parses the response from Claude and returns it in a structured dictionary'''
+
     
     # Handling unexpected or malformed response
     data = {}
