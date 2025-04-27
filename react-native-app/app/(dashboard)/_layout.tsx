@@ -71,17 +71,17 @@ export default function DashboardLayout() {
         options={{ title: "Dashboard" }}
       />
       <Tab.Screen name="Maps" component={Maps} options={{ title: "Maps" }} />
-      <Tab.Screen
-        name="Profile"
-        component={Profile}
-        options={{ title: "Profile" }}
-      />
+      <Tab.Screen name="Chat" component={Chat} options={{ title: "Chat" }} />
       <Tab.Screen
         name="Settings"
         component={Settings}
         options={{ title: "Settings" }}
       />
-      <Tab.Screen name="Chat" component={Chat} options={{ title: "Chat" }} />
+      <Tab.Screen
+        name="Profile"
+        component={Profile}
+        options={{ title: "Profile" }}
+      />
     </Tab.Navigator>
   );
 }
