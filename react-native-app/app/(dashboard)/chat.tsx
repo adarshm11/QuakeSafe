@@ -1,8 +1,10 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { View, TextInput, TouchableOpacity, StyleSheet, Dimensions, ScrollView, ActivityIndicator } from "react-native";
 import { ThemedView } from "../../components/ThemedView";
 import { ThemedText } from "../../components/ThemedText";
 import type { ScrollView as ScrollViewType } from "react-native";
+import axios from "axios";
+import supabase from "../../services/supabaseClient";
 
 const { width } = Dimensions.get("window");
 
@@ -12,7 +14,22 @@ const Chat = () => {
     ]);
     const [userInput, setUserInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [userId, setUserId] = useState<string | null>(null);
     const scrollViewRef = useRef<ScrollViewType>(null);
+    const API_URL = process.env.EXPO_PUBLIC_API_URL;
+
+    // Fetch user ID when component mounts
+    useEffect(() => {
+        const fetchUserId = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                setUserId(user.id);
+                console.log("Current user ID:", user.id);
+            }
+        };
+
+        fetchUserId();
+    }, []);
     
     const sendMessage = async () => {
         if (!userInput.trim()) return;
@@ -31,19 +48,16 @@ const Chat = () => {
     
         try {
           // Send the user's input to the backend
-          const response = await fetch("http://localhost:8000/chat", {
-            method: "POST",
+          const response = await axios.post(`${API_URL}/chat`, {
+            user_id: userId,
+            prompt: currentInput,
+          }, {
             headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ prompt: currentInput }),
+                "Content-Type": "application/json",
+            }
           });
-    
-          if (!response.ok) {
-            throw new Error(`Server responded with status: ${response.status}`);
-          }
           
-          const data = await response.json();
+          const data = response.data;
     
           if (data.response) {
             // Add Claude's response to the chat
