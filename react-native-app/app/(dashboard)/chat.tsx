@@ -5,7 +5,6 @@ import { ThemedText } from "../../components/ThemedText";
 import type { ScrollView as ScrollViewType } from "react-native";
 import axios from "axios";
 import supabase from "../../services/supabaseClient";
-
 const { width } = Dimensions.get("window");
 
 const Chat = () => {
