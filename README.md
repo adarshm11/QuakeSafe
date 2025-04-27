@@ -1,5 +1,5 @@
 # QuakeSafe 
-# Software Architecture
+## Software Architecture
 ![ezgif-7cb973ace77d85](https://github.com/user-attachments/assets/0f9b9d1a-ce4c-43f5-a0e2-a877d811122f)
 
 ## Introduction
