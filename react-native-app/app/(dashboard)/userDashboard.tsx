@@ -289,7 +289,7 @@ const UserDashboard = () => {
     if (!locationName.trim()) {
       Alert.alert(
         "Location Required",
-        "Please enter a specific location (e.g., 'San Jose City Hall')"
+        "Please specify location (Be specific: type in the address):"
       );
       return;
     }
@@ -320,7 +320,7 @@ const UserDashboard = () => {
       {showLocationInput && (
         <View style={styles.locationInputContainer}>
           <Text style={styles.locationLabel}>
-            Please specify location (be specific, e.g., San Jose City Hall"):
+            Please specify location (Be specific: type in the address):
           </Text>
           <TextInput
             style={styles.locationInput}
