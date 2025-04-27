@@ -14,7 +14,7 @@ const Chat = () => {
       
       {/* Header section */}
       <View style={styles.header}>
-        <ThemedText style={styles.title}>
+        <ThemedText style={styles.title} type="title">
           QuakeSafe Assistant
         </ThemedText>
         <ThemedText style={styles.subtitle}>
