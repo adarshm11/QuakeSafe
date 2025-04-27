@@ -3,9 +3,11 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { Pressable, Text, StyleSheet } from "react-native";
-import UserDashboard from "./userDashboard"; 
+import UserDashboard from "./userDashboard";
 import Profile from "./profile";
-import Settings from "./settings"; 
+import Settings from "./settings";
+import Maps from "./Maps";
+import Chat from "./chat";
 
 const Tab = createBottomTabNavigator();
 
@@ -14,7 +16,7 @@ export default function DashboardLayout() {
     const navigation = useNavigation();
     return (
       <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-        <Ionicons name="arrow-back" size={24} color="#0a7ea4" />
+        <Ionicons name="arrow-back" size={24} color="#b7f740" />
         <Text style={styles.backText}>Back</Text>
       </Pressable>
     );
@@ -32,29 +34,53 @@ export default function DashboardLayout() {
             iconName = "person";
           } else if (route.name === "Settings") {
             iconName = "settings";
+          } else if (route.name === "Maps") {
+            iconName = "map";
+          } else if (route.name === "Chat") {
+            iconName = "chatbubbles";
           }
 
-          return <Ionicons/>;
+          // Return the icon with the correct name
+          return <Ionicons name={iconName as any} size={size} color={color} />;
         },
-        tabBarActiveTintColor: "#0a7ea4",
-        tabBarInactiveTintColor: "gray",
-        headerLeft: () => <BackButton />, // Add back button to the header
+        // Tab bar styling
+        tabBarActiveTintColor: "#b7f740",
+        tabBarInactiveTintColor: "#888",
+        tabBarStyle: {
+          backgroundColor: "#0a0a0a",
+          borderTopColor: "#333",
+          paddingBottom: 5,
+          paddingTop: 5,
+        },
+        // Header styling
+        headerStyle: {
+          backgroundColor: "#0a0a0a",
+        },
+        headerTitleStyle: {
+          fontWeight: "bold",
+          fontSize: 18,
+          color: "#b7f740",
+        },
+        headerTintColor: "#b7f740",
+        headerLeft: () => <BackButton />,
       })}
     >
       <Tab.Screen
         name="Dashboard"
         component={UserDashboard}
-        options={{ title: "Dashboard", headerShown: true }}
+        options={{ title: "Dashboard" }}
+      />
+      <Tab.Screen name="Maps" component={Maps} options={{ title: "Maps" }} />
+      <Tab.Screen name="Chat" component={Chat} options={{ title: "Chat" }} />
+      <Tab.Screen
+        name="Settings"
+        component={Settings}
+        options={{ title: "Settings" }}
       />
       <Tab.Screen
         name="Profile"
         component={Profile}
-        options={{ title: "Profile", headerShown: true }}
-      />
-      <Tab.Screen
-        name="Settings"
-        component={Settings}
-        options={{ title: "Settings", headerShown: true }}
+        options={{ title: "Profile" }}
       />
     </Tab.Navigator>
   );
@@ -64,11 +90,12 @@ const styles = StyleSheet.create({
   backButton: {
     flexDirection: "row",
     alignItems: "center",
-    marginLeft: 10,
+    marginLeft: 15,
   },
   backText: {
     marginLeft: 5,
-    color: "#0a7ea4",
+    color: "#b7f740",
     fontSize: 16,
+    fontWeight: "500",
   },
 });
