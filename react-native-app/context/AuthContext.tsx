@@ -2,19 +2,22 @@ import React, { createContext, useState, useEffect, useContext } from "react";
 import supabase from "../services/supabaseClient";
 import { Session, User, AuthResponse } from "@supabase/supabase-js";
 
+interface ExtendedUser extends User {
+  name?: string; // Add name as an optional property
+}
 interface AuthContextType {
-  user: User | null;
+  user: ExtendedUser | null;
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<AuthResponse>; // Changed return type
+  signUp: (email: string, password: string, name:string) => Promise<AuthResponse>; // Changed return type
   signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<ExtendedUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -39,6 +42,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       subscription.unsubscribe();
     };
   }, []);
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (session?.user) {
+        const { data: profile, error } = await supabase
+          .from("user_profiles")
+          .select("name")
+          .eq("id", session.user.id)
+          .single();
+
+        if (error) {
+          console.error("Error fetching user profile:", error);
+        } else {
+          setUser({ ...session.user, name: profile?.name }); // Merge name into user object
+        }
+      }
+    };
+
+    fetchUserProfile();
+  }, [session]);
 
   const signIn = async (email: string, password: string) => {
     try {
@@ -55,11 +77,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (
     email: string,
-    password: string
+    password: string,
+    name: string
   ): Promise<AuthResponse> => {
     try {
+      // Register the user with Supabase Auth
       const response = await supabase.auth.signUp({ email, password });
       if (response.error) throw response.error;
+  
+      // Get the user ID from the registration response
+      const userId = response.data.user?.id;
+      if (!userId) throw new Error("Failed to get user ID after registration");
+  
+      // Insert the user's name into the user_profiles table
+      const { error: profileError } = await supabase
+        .from("user_profiles")
+        .insert([
+          {
+            id: userId,
+            email: email,
+            name: name, // Store the name
+          },
+        ]);
+  
+      if (profileError) throw profileError;
+  
       return response; // Return the full response
     } catch (error) {
       console.error("Error signing up:", error);

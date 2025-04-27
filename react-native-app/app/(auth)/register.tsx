@@ -18,6 +18,7 @@ import supabase from "../../services/supabaseClient";
 const { width } = Dimensions.get("window");
 
 const Register = () => {
+  const[name,setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -30,7 +31,7 @@ const Register = () => {
       setError(null);
 
       // Register the user with Supabase Auth
-      const response = await signUp(email, password);
+      const response = await signUp(email, password,name);
 
       // Check if response and data exist
       if (!response || !response.data) {
@@ -85,6 +86,16 @@ const Register = () => {
       </ThemedText>
 
       {error && <ThemedText style={styles.error}>{error}</ThemedText>}
+
+      <TextInput
+        style={styles.input}
+        placeholder="Name"
+        placeholderTextColor="#888"
+        value={name}
+        onChangeText={setName}
+        autoCapitalize="words"
+      />
+      <Spacer height={15} /> {/* Add spacing between Name and Email */}
 
       <TextInput
         style={styles.input}
