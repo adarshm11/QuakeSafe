@@ -1,18 +1,21 @@
+from dotenv import load_dotenv
+import os
 from supabase import Client
-from datetime import datetime
+from uuid import uuid4
 
-def check_if_user_exists(supabase: Client, user_id: str) -> bool | None:
+def check_if_user_exists(supabase: Client, user_id: str) -> bool:
     try:
         response = supabase.from_('user_profiles').select('id').eq('id', user_id).limit(1).execute()
         if hasattr(response, 'error') and response.error:
-            print(f'Error checking DB: {str(response.error)}')
-            return None
+            error_msg = str(response.error)
+            print(f"Supabase error during insertion: {error_msg}")
+            return False
         return True if response.data else False
     except Exception as e:
-        print(f'Error accessing DB: {e}')
-        return None
+        print(f'Error checking db: {e}')
+        return False
 
-def insert_image_entry(supabase: Client, user_id: str, image_url: str, longitude: float, latitude: float, location_name: str = None) -> str | None:
+def insert_image_entry(supabase: Client, user_id: str, image_url: str, longitude: float, latitude: float, location_name: str = None):
     """Create a new image in the database."""
     data = {
         'user_id': user_id,
@@ -24,37 +27,24 @@ def insert_image_entry(supabase: Client, user_id: str, image_url: str, longitude
     try: 
         response = supabase.from_('images').insert(data).execute()
         if hasattr(response, 'error') and response.error:
-            print(f'Error inserting into DB: {str(response.error)}')
-            return None
+            error_msg = str(response['error'])
+            print(f"Supabase error during insertion: {error_msg}")
+            return False
         else:
-            return response.data[0]['id'] # return user_id of the user that inserted the image -> multifunctional
+            return response.data[0]['id']
     except Exception as e:
-        print(f'Error accessing DB: {e}')
-        return None
+        print(f'Error during DB access: {e}')
+        return False
 
-def get_images_by_user(supabase: Client, user_id: str):
+def get_images_by_user(supabase: Client, user_id: str) :
     """Retrieve all images for a specific user."""
-    try: 
-        response = supabase.from_('images').select('*').eq('user_id', user_id).execute()
-        if hasattr(response, 'error') and response.error:
-            print(f'Error retrieving from DB: {str(response.error)}')
-            return None
-        return response.data
-    except Exception as e:
-        print(f'Error accessing DB: {e}')
-        return None
+    response = supabase.from_('images').select('*').eq('user_id', user_id).execute()
+    return response.data
 
-def get_image_by_id(supabase: Client, image_id: str):
+def get_image_by_id(supabase: Client, image_id: str) :
     """Retrieve a specific image by its ID."""
-    try:
-        response = supabase.from_('images').select('*').eq('id', image_id).single().execute()
-        if hasattr(response, 'error') and response.error:
-            print(f'Error retrieving from DB: {str(response.error)}')
-            return None
-        return response.data
-    except Exception as e:
-        print(f'Error accessing DB: {e}')
-        return None
+    response = supabase.from_('images').select('*').eq('id', image_id).single().execute()
+    return response.data
 
 def fetch_all_images(supabase: Client):
     """Retrieve all images with location data."""
@@ -85,70 +75,47 @@ def insert_safety_assessment(supabase: Client, image_id: str, safety_score: floa
 
     try:
         response = supabase.from_('safety_assessments').insert(data).execute()
-        if hasattr(response, 'error') and response.error:
-            print(f'Error inserting into DB: {str(response.error)}')
-            return None
         return response.data
     except Exception as e:
-        print(f'Error accessing DB: {e}')
-        return None
+        print(f'Error inserting into DB: {e}')
+        return {'error': str(e)}
 
-def insert_chat_message(supabase: Client, user_id: str, user_message: str, ai_response: str, chat_context: str, 
-                        timestamp: str = str(datetime.now())) -> dict:
+def get_safety_assessment_by_image(supabase: Client, image_id: str) -> list:
+    """Retrieve all safety assessments for a specific image."""
+    response = supabase.from_('safety_assessments').select('*').eq('image_id', image_id).execute()
+    return response.data
+
+def insert_chat_message(supabase: Client, user_id: str, message_text: str, sender_type: str, chat_context: str, timestamp: str) -> dict:
     """Create a new chat message."""
+    message_id = str(uuid4())
     data = {
+        "id": message_id,
         "user_id": user_id,
-        "user_message": user_message,
-        "ai_response": ai_response,
+        "message_text": message_text,
+        "sender_type": sender_type,
         "chat_context": chat_context,
         "timestamp": timestamp
     }
-    try:
-        response = supabase.from_('chat_messages').insert(data).execute()
-        if hasattr(response, 'error') and response.error:
-            print(f'Error inserting into DB: {str(response.error)}')
-            return None
-        return response.data
-    except Exception as e:
-        print(f'Error accessing DB: {e}')
-        return None
+    response = supabase.from_('chat_messages').insert(data).execute()
+    return response.data
 
 def get_chat_messages_by_user(supabase: Client, user_id: str) -> list:
     """Retrieve all chat messages for a specific user."""
-    try:
-        response = supabase.from_('chat_messages').select('*').eq('user_id', user_id).execute()
-        if hasattr(response, 'error') and response.error:
-            print(f'Error retrieving from DB: {str(response.error)}')
-            return None
-        return response.data
-    except Exception as e:
-        print(f'Error accessing DB: {e}')
-        return None
+    response = supabase.from_('chat_messages').select('*').eq('user_id', user_id).execute()
+    return response.data
 
 def insert_emergency_action(supabase: Client, user_id: str, action_taken: str) -> dict:
     """Create a new emergency action record."""
+    action_id = str(uuid4())
     data = {
+        "id": action_id,
         "user_id": user_id,
         "action_taken": action_taken
     }
-    try:
-        response = supabase.from_('emergency_actions').insert(data).execute()
-        if hasattr(response, 'error') and response.error:
-            print(f'Error inserting into DB: {str(response.error)}')
-            return None
-        return response.data
-    except Exception as e:
-        print(f'Error accessing DB: {e}')
-        return None
+    response = supabase.from_('emergency_actions').insert(data).execute()
+    return response.data
 
 def get_emergency_actions_by_user(supabase: Client, user_id: str) -> list:
     """Retrieve all emergency actions for a specific user."""
-    try:
-        response = supabase.from_('emergency_actions').select('*').eq('user_id', user_id).execute()
-        if hasattr(response, 'error') and response.error:
-            print(f'Error retrieving from DB: {str(response.error)}')
-            return None
-        return response.data
-    except Exception as e:
-        print(f'Error accessing DB: {e}')
-        return None
+    response = supabase.from_('emergency_actions').select('*').eq('user_id', user_id).execute()
+    return response.data

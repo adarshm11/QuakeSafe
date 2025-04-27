@@ -1,12 +1,13 @@
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 import uvicorn
+from uuid import uuid4
 import boto3
 import anthropic
 import uuid
 from dotenv import load_dotenv
 import os
 from pydantic import BaseModel
-from db.supabase_client import insert_image_entry, insert_safety_assessment, insert_chat_message
+from db.supabase_client import insert_image_entry, insert_safety_assessment, insert_chat_message, fetch_all_images, get_image_by_id, get_safety_assessment_by_image, get_chat_messages_by_user
 from supabase import create_client
 from typing import Optional
 from fastapi.middleware.cors import CORSMiddleware
@@ -363,7 +364,7 @@ async def get_safety_assessments(image_id: str):
         supabase_client = create_client(SUPABASE_URL, SUPABASE_KEY)
         
         # Get the image data
-        safety_assessments = get_safety_assessments_by_image(supabase_client, image_id)
+        safety_assessments = get_safety_assessment_by_image(supabase_client, image_id)
         if not safety_assessments:
             print(f"[ERROR] Safety assessments not found for image with ID {image_id}")
             raise HTTPException(status_code=404, detail="Safety assessments not found")
@@ -431,6 +432,6 @@ async def process_chatbot(request: ChatRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
+    
 if __name__ == '__main__':
     uvicorn.run('main:app', host='0.0.0.0', port=8000, reload=True)
