@@ -12,17 +12,19 @@ import {
 import { useAuth } from "../../context/AuthContext"; // Import useAuth
 
 const Profile = () => {
-  const { user } = useAuth(); // Access the authenticated user
+  const { user } = useAuth();
   const [phone, setPhone] = useState("(123) 456-7890");
-  const [isEditing, setIsEditing] = useState(false); // Toggle edit mode
-  const today = new Date().toLocaleDateString(); // Get today's date
+  const [isEditing, setIsEditing] = useState(false);
+  const today = new Date().toLocaleDateString();
 
-  // Save changes (replace with your backend logic)
   const saveChanges = () => {
     setIsEditing(false);
     Alert.alert("Profile Updated", "Your profile details have been updated.");
     // Add logic to save changes to your backend or state management system
   };
+
+  const safeText = (text?: unknown, fallback = "Unavailable") =>
+    typeof text === "string" ? text : fallback;
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -32,21 +34,26 @@ const Profile = () => {
       {/* Profile Header */}
       <View style={styles.header}>
         <Image
-          source={{ uri: "https://via.placeholder.com/150" }} // Replace with actual user avatar URL
+          source={{ uri: "https://via.placeholder.com/150" }}
           style={styles.avatar}
         />
-        
-        <Text style={styles.name}>{user?.name || "No name available"}</Text>
-        <Text style={styles.email}>{user?.email || "No email available"}</Text>
+        <Text style={styles.name}>
+          {safeText(user?.name, "No name available")}
+        </Text>
+        <Text style={styles.email}>
+          {safeText(user?.email, "No email available")}
+        </Text>
       </View>
 
       {/* Profile Details */}
       <View style={styles.detailsCard}>
         <Text style={styles.cardTitle}>Profile Details</Text>
+
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Location:</Text>
-          <Text style={styles.detailValue}>San Jose, CA</Text> {/* Hardcoded */}
+          <Text style={styles.detailValue}>San Jose, CA</Text>
         </View>
+
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Phone:</Text>
           {isEditing ? (
@@ -54,12 +61,15 @@ const Profile = () => {
               style={styles.detailInput}
               value={phone}
               onChangeText={setPhone}
-              underlineColorAndroid="transparent" // Removes blue underline
+              underlineColorAndroid="transparent"
+              placeholder="Enter your phone"
+              placeholderTextColor="#888"
             />
           ) : (
             <Text style={styles.detailValue}>{phone}</Text>
           )}
         </View>
+
         <View style={styles.detailRow}>
           <Text style={styles.detailLabel}>Account Created:</Text>
           <Text style={styles.detailValue}>{today}</Text>
@@ -90,7 +100,7 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     padding: 20,
-    backgroundColor: "#0a0a0a", // Matches chat.tsx background color
+    backgroundColor: "#0a0a0a",
     position: "relative",
   },
   ambientGlow: {
@@ -99,7 +109,7 @@ const styles = StyleSheet.create({
     width: 500,
     height: 500,
     borderRadius: 250,
-    backgroundColor: "rgba(183, 247, 64, 0.03)", // Subtle glow effect
+    backgroundColor: "rgba(183, 247, 64, 0.03)",
     transform: [{ scaleX: 1.5 }],
   },
   header: {
@@ -116,84 +126,75 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "bold",
     marginBottom: 5,
-    color: "#b7f740", // Matches chat.tsx title color
-  },
-  nameInput: {
-    fontSize: 22,
-    fontWeight: "bold",
-    borderBottomWidth: 1,
-    borderBottomColor: "#b7f740", // Matches chat.tsx title color
-    marginBottom: 5,
-    textAlign: "center",
-    backgroundColor: "transparent", // Ensures no background color
-    color: "#b7f740", // Matches chat.tsx title color
+    color: "#b7f740",
   },
   email: {
     fontSize: 16,
     marginBottom: 20,
-    color: "#a0a0a0", // Matches chat.tsx subtitle color
+    color: "#a0a0a0",
   },
   detailsCard: {
-    backgroundColor: "rgba(20, 20, 20, 0.8)", // Matches chat.tsx input background
+    backgroundColor: "rgba(20, 20, 20, 0.8)",
     borderRadius: 10,
     padding: 15,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: "rgba(183, 247, 64, 0.3)", // Matches chat.tsx border color
+    borderColor: "rgba(183, 247, 64, 0.3)",
   },
   cardTitle: {
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 10,
-    color: "#b7f740", // Matches chat.tsx title color
+    color: "#b7f740",
   },
   detailRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 10,
+    alignItems: "center",
   },
   detailLabel: {
     fontSize: 14,
     fontWeight: "bold",
-    color: "#a0a0a0", // Matches chat.tsx subtitle color
+    color: "#a0a0a0",
   },
   detailValue: {
     fontSize: 14,
-    color: "#e0e0e0", // Matches chat.tsx general text color
+    color: "#e0e0e0",
   },
   detailInput: {
     fontSize: 14,
     borderBottomWidth: 1,
-    borderBottomColor: "#b7f740", // Matches chat.tsx title color
+    borderBottomColor: "#b7f740",
     flex: 1,
     textAlign: "right",
-    backgroundColor: "transparent", // Ensures no background color
-    color: "#e0e0e0", // Matches chat.tsx general text color
+    backgroundColor: "transparent",
+    color: "#e0e0e0",
   },
   editButton: {
-    backgroundColor: "rgba(183, 247, 64, 0.1)", // Matches chat.tsx button background
+    backgroundColor: "rgba(183, 247, 64, 0.1)",
     paddingVertical: 10,
     borderRadius: 5,
     alignItems: "center",
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: "rgba(183, 247, 64, 0.3)", // Matches chat.tsx border color
+    borderColor: "rgba(183, 247, 64, 0.3)",
   },
   editButtonText: {
-    color: "#b7f740", // Matches chat.tsx title color
+    color: "#b7f740",
     fontSize: 16,
     fontWeight: "bold",
   },
   logoutButton: {
-    backgroundColor: "rgba(183, 247, 64, 0.1)", // Matches chat.tsx button background
+    backgroundColor: "rgba(183, 247, 64, 0.1)",
     paddingVertical: 10,
     borderRadius: 5,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "rgba(183, 247, 64, 0.3)", // Matches chat.tsx border color
+    borderColor: "rgba(183, 247, 64, 0.3)",
   },
   logoutButtonText: {
-    color: "#b7f740", // Matches chat.tsx title color
+    color: "#b7f740",
     fontSize: 16,
     fontWeight: "bold",
   },
