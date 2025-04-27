@@ -300,16 +300,16 @@ const UserDashboard = () => {
     }
   };
 
-    // Reset function to clear all states
-    const resetDashboard = () => {
-      setImage(null);
-      setLocation(null);
-      setUploading(false);
-      setAnalysisResult(null);
-      setUseCurrentLocation(true);
-      setLocationName("");
-      setShowLocationInput(false);
-    };
+  // Reset function to clear all states
+  const resetDashboard = () => {
+    setImage(null);
+    setLocation(null);
+    setUploading(false);
+    setAnalysisResult(null);
+    setUseCurrentLocation(true);
+    setLocationName("");
+    setShowLocationInput(false);
+  };
 
   return (
     <KeyboardAvoidingView
@@ -334,44 +334,46 @@ const UserDashboard = () => {
           </TouchableOpacity>
         </View>
 
-      {image && !uploading && !showLocationInput && (
-        <View style={styles.imageContainer}>
-          <Image source={{ uri: image }} style={styles.image} />
-          <Text style={styles.imageText}>Image Uploaded Successfully!</Text>
-        </View>
-      )}
+        {image && !uploading && !showLocationInput && (
+          <View style={styles.imageContainer}>
+            <Image source={{ uri: image }} style={styles.image} />
+            <Text style={styles.imageText}>Image Uploaded Successfully!</Text>
+          </View>
+        )}
 
-      {analysisResult && (
-        <View style={styles.analysisContainer}>
-          <Text style={styles.analysisTitle}>Safety Analysis:</Text>
-          {typeof analysisResult === "string" ? (
-            <Text style={styles.analysisText}>{analysisResult}</Text>
-          ) : (
-            <>
-              <Text style={styles.analysisLabel}>Description:</Text>
-              <Text style={styles.analysisText}>
-                {analysisResult.Description}
-              </Text>
+        {analysisResult && (
+          <View style={styles.analysisContainer}>
+            <Text style={styles.analysisTitle}>Safety Analysis:</Text>
+            {typeof analysisResult === "string" ? (
+              <Text style={styles.analysisText}>{analysisResult}</Text>
+            ) : (
+              <>
+                <Text style={styles.analysisLabel}>Description:</Text>
+                <Text style={styles.analysisText}>
+                  {analysisResult.Description}
+                </Text>
 
-              <Text style={styles.analysisLabel}>Safety Score:</Text>
-              <Text style={styles.analysisText}>{analysisResult.Score}</Text>
+                <Text style={styles.analysisLabel}>Safety Score:</Text>
+                <Text style={styles.analysisText}>{analysisResult.Score}</Text>
 
-              <Text style={styles.analysisLabel}>Magnitude Survivability:</Text>
-              <Text style={styles.analysisText}>
-                {analysisResult["Magnitude Survivability"]}
-              </Text>
-            </>
-          )}
-        </View>
-      )}
-    {/* Conditionally Render the Done Button */}
-    {image && !uploading && (
-      <TouchableOpacity style={styles.doneButton} onPress={resetDashboard}>
-        <Text style={styles.doneButtonText}>Done</Text>
-      </TouchableOpacity>
-    )}
-    </View>
-
+                <Text style={styles.analysisLabel}>
+                  Magnitude Survivability:
+                </Text>
+                <Text style={styles.analysisText}>
+                  {analysisResult["Magnitude Survivability"]}
+                </Text>
+              </>
+            )}
+          </View>
+        )}
+        {/* Conditionally Render the Done Button */}
+        {image && !uploading && (
+          <TouchableOpacity style={styles.doneButton} onPress={resetDashboard}>
+            <Text style={styles.doneButtonText}>Done</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -499,12 +501,12 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 5,
     borderWidth: 1,
-    borderColor: "rgba(183, 247, 64, 0.3)", 
+    borderColor: "rgba(183, 247, 64, 0.3)",
     fontSize: 16,
     color: "#e0e0e0",
   },
   submitButton: {
-    backgroundColor: "rgba(183, 247, 64, 0.1)", 
+    backgroundColor: "rgba(183, 247, 64, 0.1)",
     padding: 10,
     borderRadius: 5,
     alignItems: "center",
@@ -513,7 +515,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(183, 247, 64, 0.3)",
   },
   submitButtonText: {
-    color: "#b7f740", 
+    color: "#b7f740",
     fontWeight: "bold",
   },
   doneButton: {
