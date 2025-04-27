@@ -94,7 +94,7 @@ def calculate_safety_score(image_url:str):
                     },
                     {
                         'type': 'text',
-                        'text': 'Analyze the image for earthquake safety risks and provide a safety score (0-100) and estimated magnitude survivability (e.g., "7.5").'
+                        'text': 'Analyze the image for earthquake safety risks and provide a safety score (0-100) and estimated magnitude survivability (e.g., "7.5"), and a summary of safety features and potential concerns.'
                     }
                 ],
             }
@@ -108,30 +108,51 @@ def calculate_safety_score(image_url:str):
 
         # Parse the safety score
     try:
-        safety_score_line = next(line for line in analysis.splitlines() if "Safety score:" in line)
-        # Extract the number before the "/100" or any range
-        safety_score_range = safety_score_line.split("Safety score:")[1].strip()
-        if not safety_score_range:
-            raise ValueError("Safety score is missing or incomplete in the response.")
-        if "-" in safety_score_range:
-            safety_score = float(safety_score_range.split("-")[1])  # Use the upper bound of the range
-        else:
-            safety_score = float(safety_score_range.split("/")[0])  # Extract the number before "/"
+        normalized_analysis = "\n".join(line.strip("*").lower() for line in analysis.splitlines())
+        safety_score_line = next(line for line in normalized_analysis.splitlines() if "safety score" in line)
+        safety_score_range = safety_score_line.split(":")[1].strip()
+        # Extract the number before "/100"
+        safety_score = float(safety_score_range.split("/")[0].strip())
     except (StopIteration, ValueError, IndexError):
         raise ValueError("Failed to parse safety score from Claude AI response: " + analysis)
 
     # Parse the estimated magnitude survivability
     try:
-        survivability_line = next(line for line in analysis.splitlines() if "Estimated magnitude survivability:" in line)
-        estimated_magnitude_survivability = survivability_line.split("Estimated magnitude survivability:")[1].strip()
-        if not estimated_magnitude_survivability or estimated_magnitude_survivability.endswith("-"):
-            estimated_magnitude_survivability = None  # Default value if incomplete
+        survivability_line = next(line for line in normalized_analysis.splitlines() if "estimated magnitude survivability" in line)
+        survivability_value = survivability_line.split(":")[1].strip()
+        # Remove stars and handle ranges like "7.0-7.5" by extracting the upper bound
+        survivability_value = survivability_value.replace("*", "").strip()
+        if "-" in survivability_value:
+            estimated_magnitude_survivability = float(survivability_value.split("-")[1].strip())
         else:
-            estimated_magnitude_survivability = float(estimated_magnitude_survivability)  # Convert to float
+            estimated_magnitude_survivability = float(survivability_value)
     except (StopIteration, ValueError, IndexError):
-        estimated_magnitude_survivability = None  # Default value if missing
+        estimated_magnitude_survivability = None # Default value if parsing fails
+    
+    try:
+        safety_features_start = analysis.lower().find("### safety features")
+        potential_concerns_start = analysis.lower().find("### potential concerns")
+        
+        if safety_features_start != -1 and potential_concerns_start != -1:
+            # Extract the "Safety Features" section
+            safety_features = analysis[safety_features_start:potential_concerns_start].strip()
+            
+            # Extract the "Potential Concerns" section
+            potential_concerns = analysis[potential_concerns_start:].strip()
+            
+            # Format the description
+            description = f"{safety_features}\n\n{potential_concerns}"
+        else:
+            description = "No detailed safety features or concerns found in the analysis."
+    except Exception as e:
+        print(f"Warning: Failed to generate description. Error: {e}")
+        description = "No detailed safety features or concerns found in the analysis."
 
-    return safety_score, estimated_magnitude_survivability
+    print("Safety Score(line 134): ", safety_score)
+    print("Estimated Magnitude Survivability line 135: ", estimated_magnitude_survivability)
+    print("Description: ", description)
+
+    return safety_score, estimated_magnitude_survivability, description
 
 @app.post('/safety-assessment')
 async def safety_assessment(file:UploadFile=File(...)):
@@ -139,15 +160,19 @@ async def safety_assessment(file:UploadFile=File(...)):
     filename=await upload_to_s3(file)
     presigned_url=await generate_presigned_url(filename)
 
-    safety_score,estimated_magnitude_survivability= await calculate_safety_score(presigned_url)
+    safety_score,estimated_magnitude_survivability,description= calculate_safety_score(presigned_url)
     image_id=str(uuid4())
     response=await create_safety_assessment(
         supabase=create_client(SUPABASE_URL, SUPABASE_KEY),
         image_id=image_id,
         safety_score=safety_score,
         estimated_magnitude_survivability=estimated_magnitude_survivability,
+        description=description
     )
+    print("Response from Supabase: ", response) 
     if(not response):
+        print("Error: Failed to create safety assessment in Supabase.")
+
         return {'error': 'Failed to create safety assessment.'}
     
     return {

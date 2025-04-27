@@ -30,7 +30,7 @@ def get_image_by_id(supabase: Client, image_id: str) :
     return response.data
 
 def create_safety_assessment(supabase: Client, image_id: str, safety_score: float, 
-                             estimated_magnitude_survivability: str, ) :
+                             estimated_magnitude_survivability: str,description:str ) :
     """Create a new safety assessment record."""
     assessment_id = str(uuid4())
     data = {
@@ -38,9 +38,11 @@ def create_safety_assessment(supabase: Client, image_id: str, safety_score: floa
         "image_id": image_id,
         "safety_score": safety_score,
         "estimated_magnitude_survivability": estimated_magnitude_survivability,
+        "description": description
         
     }
     response = supabase.from_('safety_assessments').insert(data).execute()
+    print("Safety Assessment Response: ", response)
     return response.data
 
 def get_safety_assessments_by_image(supabase: Client, image_id: str) -> list:
