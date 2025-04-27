@@ -16,6 +16,9 @@ import * as Location from "expo-location";
 import supabase from "../../services/supabaseClient";
 import axios from "axios";
 
+
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
+
 const UserDashboard = () => {
   const [image, setImage] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
@@ -211,7 +214,7 @@ const UserDashboard = () => {
     try {
       // Upload to your backend
       const response = await axios.post(
-        "http://192.168.1.137:8000/analyze",
+        `${API_URL}/analyze`,
         formData,
         {
           headers: {
