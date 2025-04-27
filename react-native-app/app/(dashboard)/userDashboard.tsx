@@ -16,7 +16,6 @@ import * as Location from "expo-location";
 import supabase from "../../services/supabaseClient";
 import axios from "axios";
 
-
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 const UserDashboard = () => {
@@ -35,12 +34,10 @@ const UserDashboard = () => {
   // Get user ID and location on component mount
   useEffect(() => {
     const fetchUserData = async () => {
-      // Get user ID from Supabase session
       const {
         data: { user },
       } = await supabase.auth.getUser();
       if (user) {
-        // Get profile ID from user_profiles table
         const { data, error } = await supabase
           .from("user_profiles")
           .select("id")
@@ -54,7 +51,6 @@ const UserDashboard = () => {
         }
       }
 
-      // Get location permission
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
         Alert.alert(
@@ -68,7 +64,6 @@ const UserDashboard = () => {
     fetchUserData();
   }, []);
 
-  // Get current location
   const getCurrentLocation = async () => {
     try {
       const currentLocation = await Location.getCurrentPositionAsync({
@@ -92,7 +87,6 @@ const UserDashboard = () => {
   };
 
   const pickImage = async () => {
-    // Request permission to access media library
     if (Platform.OS !== "web") {
       const { status } =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -105,7 +99,6 @@ const UserDashboard = () => {
       }
     }
 
-    // Open image picker
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
@@ -116,7 +109,6 @@ const UserDashboard = () => {
     if (!result.canceled) {
       setImage(result.assets[0].uri);
 
-      // Ask user if they want to use current location or specify manually
       Alert.alert(
         "Location Information",
         "Do you want to use your current location or specify location manually?",
@@ -142,7 +134,6 @@ const UserDashboard = () => {
   };
 
   const takePhoto = async () => {
-    // Request camera permission
     if (Platform.OS !== "web") {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       if (status !== "granted") {
@@ -154,7 +145,6 @@ const UserDashboard = () => {
       }
     }
 
-    // Open camera
     const result = await ImagePicker.launchCameraAsync({
       allowsEditing: true,
       aspect: [4, 3],
@@ -163,7 +153,6 @@ const UserDashboard = () => {
 
     if (!result.canceled) {
       setImage(result.assets[0].uri);
-      // When taking a photo, always use current location
       uploadImageWithData(result.assets[0].uri, true);
     }
   };
@@ -177,34 +166,24 @@ const UserDashboard = () => {
       return;
     }
 
-    // Prepare form data for upload
     const formData = new FormData();
-
-    // Add the image file
     const filename = imageUri.split("/").pop() || "image.jpg";
     const match = /\.(\w+)$/.exec(filename);
     const type = match ? `image/${match[1]}` : "image/jpeg";
 
-    // @ts-ignore - TypeScript doesn't like FormData append
-    formData.append("file", {
-      uri: imageUri,
-      name: filename,
-      type,
-    });
+    const response = await fetch(imageUri);
+    const blob = await response.blob();
+    formData.append("file", blob, filename);
 
-    // Add user ID
     formData.append("user_id", userId);
 
-    // Handle location - either get current GPS location or use manual input
     if (useGPS) {
-      // Get current location when uploading
       const currentLocation = await getCurrentLocation();
       if (!currentLocation) return;
 
       formData.append("longitude", currentLocation.longitude.toString());
       formData.append("latitude", currentLocation.latitude.toString());
     } else {
-      // Use manual location string
       formData.append("location_name", locationName);
     }
 
@@ -212,18 +191,12 @@ const UserDashboard = () => {
     setAnalysisResult(null);
 
     try {
-      // Upload to your backend
-      const response = await axios.post(
-        `${API_URL}/analyze`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      const response = await axios.post(`${API_URL}/analyze`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
-      // Handle successful response
       if (response.data && response.data.analysis) {
         setAnalysisResult(response.data.analysis);
       }
@@ -236,7 +209,6 @@ const UserDashboard = () => {
     }
   };
 
-  // Function to handle manual location submission
   const submitManualLocation = () => {
     if (!locationName.trim()) {
       Alert.alert(
@@ -253,16 +225,21 @@ const UserDashboard = () => {
 
   return (
     <View style={styles.container}>
+      <View style={styles.ambientGlow} />
       <Text style={styles.title}>Earthquake Safety Dashboard</Text>
       <Text style={styles.subtitle}>
         Upload an image of your city to help us analyze safety measures.
       </Text>
 
-      <View style={styles.buttonContainer}>
-        <Button title="Upload Image" onPress={pickImage} />
-        <View style={styles.buttonSpacer} />
-        <Button title="Take Photo" onPress={takePhoto} />
-      </View>
+        <View style={styles.buttonContainer}>
+    <TouchableOpacity style={styles.actionButton} onPress={pickImage}>
+      <Text style={styles.actionButtonText}>Upload Image</Text>
+    </TouchableOpacity>
+    <View style={styles.buttonSpacer} />
+    <TouchableOpacity style={styles.actionButton} onPress={takePhoto}>
+      <Text style={styles.actionButtonText}>Take Photo</Text>
+    </TouchableOpacity>
+  </View>
 
       {showLocationInput && (
         <View style={styles.locationInputContainer}>
@@ -286,7 +263,7 @@ const UserDashboard = () => {
 
       {uploading && (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#0000ff" />
+          <ActivityIndicator size="large" color="#b7f740" />
           <Text style={styles.loadingText}>Analyzing image...</Text>
         </View>
       )}
@@ -316,19 +293,30 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
-    backgroundColor: "#f9f9f9",
+    backgroundColor: "#0a0a0a", // Matches profile.tsx background color
+    position: "relative",
+  },
+  ambientGlow: {
+    position: "absolute",
+    top: "30%",
+    width: 500,
+    height: 500,
+    borderRadius: 250,
+    backgroundColor: "rgba(183, 247, 64, 0.03)", // Subtle glow effect
+    transform: [{ scaleX: 1.5 }],
   },
   title: {
     fontSize: 24,
     fontWeight: "bold",
     marginBottom: 20,
     textAlign: "center",
+    color: "#b7f740", // Matches profile.tsx title color
   },
   subtitle: {
     fontSize: 16,
     textAlign: "center",
     marginBottom: 30,
-    color: "#555",
+    color: "#a0a0a0", // Matches profile.tsx subtitle color
   },
   buttonContainer: {
     flexDirection: "row",
@@ -351,7 +339,7 @@ const styles = StyleSheet.create({
   },
   imageText: {
     fontSize: 14,
-    color: "green",
+    color: "#e0e0e0", // Matches profile.tsx general text color
   },
   loadingContainer: {
     marginTop: 20,
@@ -360,54 +348,75 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 10,
     fontSize: 14,
-    color: "#555",
+    color: "#a0a0a0", // Matches profile.tsx subtitle color
   },
   analysisContainer: {
     marginTop: 20,
     padding: 15,
-    backgroundColor: "#f0f0f0",
+    backgroundColor: "rgba(20, 20, 20, 0.8)", // Matches profile.tsx card background
     borderRadius: 10,
     width: "100%",
+    borderWidth: 1,
+    borderColor: "rgba(183, 247, 64, 0.3)", // Matches profile.tsx border color
   },
   analysisTitle: {
     fontSize: 16,
     fontWeight: "bold",
     marginBottom: 10,
+    color: "#b7f740", // Matches profile.tsx title color
   },
   analysisText: {
     fontSize: 14,
     lineHeight: 20,
+    color: "#e0e0e0", // Matches profile.tsx general text color
+  },
+  actionButton: {
+    backgroundColor: "rgba(183, 247, 64, 0.1)", // Matches profile.tsx button background
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(183, 247, 64, 0.3)", // Matches profile.tsx border color
+  },
+  actionButtonText: {
+    color: "#b7f740", // Matches profile.tsx title color
+    fontSize: 16,
+    fontWeight: "bold",
   },
   locationInputContainer: {
     width: "100%",
     padding: 10,
     marginTop: 10,
     marginBottom: 10,
-    backgroundColor: "#eaeaea",
+    backgroundColor: "rgba(20, 20, 20, 0.8)", // Matches profile.tsx input background
     borderRadius: 8,
   },
   locationLabel: {
     fontSize: 14,
     marginBottom: 8,
-    color: "#333",
+    color: "#a0a0a0", // Matches profile.tsx subtitle color
   },
   locationInput: {
-    backgroundColor: "#fff",
+    backgroundColor: "#0a0a0a", // Matches profile.tsx input background
     padding: 10,
     borderRadius: 5,
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: "rgba(183, 247, 64, 0.3)", // Matches profile.tsx border color
     fontSize: 16,
+    color: "#e0e0e0", // Matches profile.tsx general text color
   },
   submitButton: {
-    backgroundColor: "#2196F3",
+    backgroundColor: "rgba(183, 247, 64, 0.1)", // Matches profile.tsx button background
     padding: 10,
     borderRadius: 5,
     alignItems: "center",
     marginTop: 10,
+    borderWidth: 1,
+    borderColor: "rgba(183, 247, 64, 0.3)", // Matches profile.tsx border color
   },
   submitButtonText: {
-    color: "#fff",
+    color: "#b7f740", // Matches profile.tsx title color
     fontWeight: "bold",
   },
 });
