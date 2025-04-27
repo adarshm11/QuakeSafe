@@ -13,7 +13,6 @@ import { useAuth } from "../../context/AuthContext"; // Import useAuth
 
 const Profile = () => {
   const { user } = useAuth(); // Access the authenticated user
-  const [name, setName] = useState("John Doe");
   const [phone, setPhone] = useState("(123) 456-7890");
   const [isEditing, setIsEditing] = useState(false); // Toggle edit mode
   const today = new Date().toLocaleDateString(); // Get today's date
@@ -36,17 +35,8 @@ const Profile = () => {
           source={{ uri: "https://via.placeholder.com/150" }} // Replace with actual user avatar URL
           style={styles.avatar}
         />
-        {isEditing ? (
-          <TextInput
-            style={styles.nameInput}
-            value={name}
-            onChangeText={setName}
-            autoFocus
-            underlineColorAndroid="transparent" // Removes blue underline
-          />
-        ) : (
-          <Text style={styles.name}>{name}</Text>
-        )}
+        
+        <Text style={styles.name}>{user?.name || "No name available"}</Text>
         <Text style={styles.email}>{user?.email || "No email available"}</Text>
       </View>
 
