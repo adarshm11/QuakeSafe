@@ -18,6 +18,12 @@ import axios from "axios";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
+type AnalysisResult = {
+  Description: string;
+  Score: number;
+  "Magnitude Survivability": string;
+};
+
 const UserDashboard = () => {
   const [image, setImage] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
@@ -26,7 +32,9 @@ const UserDashboard = () => {
     longitude: number;
   } | null>(null);
   const [uploading, setUploading] = useState<boolean>(false);
-  const [analysisResult, setAnalysisResult] = useState<string | null>(null);
+  const [analysisResult, setAnalysisResult] = useState<
+    AnalysisResult | string | null
+  >(null);
   const [useCurrentLocation, setUseCurrentLocation] = useState<boolean>(true);
   const [locationName, setLocationName] = useState<string>("");
   const [showLocationInput, setShowLocationInput] = useState<boolean>(false);
@@ -166,31 +174,77 @@ const UserDashboard = () => {
       return;
     }
 
-    const formData = new FormData();
-    const filename = imageUri.split("/").pop() || "image.jpg";
-    const match = /\.(\w+)$/.exec(filename);
-    const type = match ? `image/${match[1]}` : "image/jpeg";
-
-    const response = await fetch(imageUri);
-    const blob = await response.blob();
-    formData.append("file", blob, filename);
-
-    formData.append("user_id", userId);
-
-    if (useGPS) {
-      const currentLocation = await getCurrentLocation();
-      if (!currentLocation) return;
-
-      formData.append("longitude", currentLocation.longitude.toString());
-      formData.append("latitude", currentLocation.latitude.toString());
-    } else {
-      formData.append("location_name", locationName);
-    }
-
     setUploading(true);
     setAnalysisResult(null);
 
     try {
+      // Prepare form data for upload
+      const formData = new FormData();
+
+      // Add the image file
+      const filename = imageUri.split("/").pop() || "image.jpg";
+      const match = /\.(\w+)$/.exec(filename);
+      const type = match ? `image/${match[1]}` : "image/jpeg";
+
+      // @ts-ignore - TypeScript doesn't like FormData append
+      formData.append("file", {
+        uri: imageUri,
+        name: filename,
+        type,
+      });
+
+      // Add user ID
+      formData.append("user_id", userId);
+
+      // Handle location - either get current GPS location or use manual input
+      if (useGPS) {
+        // Get current location when uploading
+        const currentLocation = await getCurrentLocation();
+        if (!currentLocation) {
+          setUploading(false);
+          return;
+        }
+
+        formData.append("longitude", currentLocation.longitude.toString());
+        formData.append("latitude", currentLocation.latitude.toString());
+      } else {
+        // Use manual location string - use Expo's geocoding instead of Google Places
+        try {
+          console.log(`Geocoding location: "${locationName}"`);
+          formData.append("location_name", locationName);
+
+          // Use Expo's geocoding which doesn't require Google API key
+          const geocodedLocations = await Location.geocodeAsync(locationName);
+
+          if (geocodedLocations && geocodedLocations.length > 0) {
+            const lat = geocodedLocations[0].latitude;
+            const lng = geocodedLocations[0].longitude;
+
+            console.log("Geocoding successful:", { lat, lng });
+
+            formData.append("longitude", lng.toString());
+            formData.append("latitude", lat.toString());
+          } else {
+            throw new Error(
+              "Could not find this location. Please try a more specific name."
+            );
+          }
+        } catch (error) {
+          console.error("Error with geocoding:", error);
+          Alert.alert(
+            "Location Error",
+            "Could not find this location. Please try a more specific name."
+          );
+          setUploading(false);
+          return;
+        }
+      }
+
+      // At this point we have valid coordinates in the formData
+      console.log("Sending data to server...");
+
+      // Make the API request
+
       const response = await axios.post(`${API_URL}/analyze`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
@@ -198,11 +252,33 @@ const UserDashboard = () => {
       });
 
       if (response.data && response.data.analysis) {
+        // Store the analysis object instead of trying to render it directly
         setAnalysisResult(response.data.analysis);
+      } else {
+        setAnalysisResult({
+          Description: "Analysis completed, but no detailed results available.",
+          Score: 0,
+          "Magnitude Survivability": "Unknown",
+        });
       }
     } catch (error) {
       console.error("Upload error:", error);
-      Alert.alert("Upload Failed", "There was an error uploading your image.");
+
+      // Show more detailed error message
+      if (axios.isAxiosError(error) && error.response) {
+        console.error("Server response:", error.response.data);
+        Alert.alert(
+          "Upload Failed",
+          `Server error (${error.response.status}): ${JSON.stringify(
+            error.response.data
+          )}`
+        );
+      } else {
+        Alert.alert(
+          "Upload Failed",
+          "There was an error uploading your image."
+        );
+      }
     } finally {
       setUploading(false);
       setShowLocationInput(false);
@@ -213,7 +289,7 @@ const UserDashboard = () => {
     if (!locationName.trim()) {
       Alert.alert(
         "Location Required",
-        "Please enter a specific location (e.g., 'San Jose City Hall')"
+        "Please specify location (Be specific: type in the address):"
       );
       return;
     }
@@ -231,20 +307,20 @@ const UserDashboard = () => {
         Upload an image of your city to help us analyze safety measures.
       </Text>
 
-        <View style={styles.buttonContainer}>
-    <TouchableOpacity style={styles.actionButton} onPress={pickImage}>
-      <Text style={styles.actionButtonText}>Upload Image</Text>
-    </TouchableOpacity>
-    <View style={styles.buttonSpacer} />
-    <TouchableOpacity style={styles.actionButton} onPress={takePhoto}>
-      <Text style={styles.actionButtonText}>Take Photo</Text>
-    </TouchableOpacity>
-  </View>
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.actionButton} onPress={pickImage}>
+          <Text style={styles.actionButtonText}>Upload Image</Text>
+        </TouchableOpacity>
+        <View style={styles.buttonSpacer} />
+        <TouchableOpacity style={styles.actionButton} onPress={takePhoto}>
+          <Text style={styles.actionButtonText}>Take Photo</Text>
+        </TouchableOpacity>
+      </View>
 
       {showLocationInput && (
         <View style={styles.locationInputContainer}>
           <Text style={styles.locationLabel}>
-            Please specify location (be specific, e.g., San Jose City Hall"):
+            Please specify location (Be specific: type in the address):
           </Text>
           <TextInput
             style={styles.locationInput}
@@ -278,7 +354,24 @@ const UserDashboard = () => {
       {analysisResult && (
         <View style={styles.analysisContainer}>
           <Text style={styles.analysisTitle}>Safety Analysis:</Text>
-          <Text style={styles.analysisText}>{analysisResult}</Text>
+          {typeof analysisResult === "string" ? (
+            <Text style={styles.analysisText}>{analysisResult}</Text>
+          ) : (
+            <>
+              <Text style={styles.analysisLabel}>Description:</Text>
+              <Text style={styles.analysisText}>
+                {analysisResult.Description}
+              </Text>
+
+              <Text style={styles.analysisLabel}>Safety Score:</Text>
+              <Text style={styles.analysisText}>{analysisResult.Score}</Text>
+
+              <Text style={styles.analysisLabel}>Magnitude Survivability:</Text>
+              <Text style={styles.analysisText}>
+                {analysisResult["Magnitude Survivability"]}
+              </Text>
+            </>
+          )}
         </View>
       )}
     </View>
@@ -383,6 +476,13 @@ const styles = StyleSheet.create({
     color: "#b7f740", // Matches profile.tsx title color
     fontSize: 16,
     fontWeight: "bold",
+  },
+  analysisLabel: {
+    fontSize: 14,
+    fontWeight: "bold",
+    marginTop: 10,
+    marginBottom: 5,
+    color: "#555",
   },
   locationInputContainer: {
     width: "100%",
