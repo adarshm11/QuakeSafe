@@ -37,6 +37,39 @@ type MapViewComponentProps = {
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
+// Add this helper function above your component (or inside, before return)
+const renderMagnitudeAdvice = (magnitudeStr?: string | null) => {
+  if (!magnitudeStr) return null;
+  let magnitude_value: number | null = null;
+  if (typeof magnitudeStr === "number") {
+    magnitude_value = magnitudeStr;
+  } else if (typeof magnitudeStr === "string") {
+    const match = magnitudeStr.match(/[\d.]+/);
+    magnitude_value = match ? parseFloat(match[0]) : null;
+  }
+  if (magnitude_value === null || isNaN(magnitude_value)) return null;
+
+  if (magnitude_value < 6.0) {
+    return (
+      <Text style={{ color: "#ef4444", fontWeight: "bold", marginBottom: 4 }}>
+        🚨 Leave Immediately
+      </Text>
+    );
+  } else if (magnitude_value < 7.0) {
+    return (
+      <Text style={{ color: "#f59e0b", fontWeight: "bold", marginBottom: 4 }}>
+        ⚠️ Caution: Building Needs Strengthening
+      </Text>
+    );
+  } else {
+    return (
+      <Text style={{ color: "#22c55e", fontWeight: "bold", marginBottom: 4 }}>
+        🏠 Safe
+      </Text>
+    );
+  }
+};
+
 const MapViewComponent = ({
   region,
   locationPins: initialPins,
@@ -197,6 +230,11 @@ const MapViewComponent = ({
                         }
                       </Text>
                     </View>
+                    {/* Add magnitude advice with emoji */}
+                    {renderMagnitudeAdvice(
+                      safetyAssessments[location.id]
+                        ?.estimated_magnitude_survivability
+                    )}
                     <Text style={styles.descriptionLabel}>Issues:</Text>
                     <Text style={styles.description}>
                       {safetyAssessments[location.id]?.description}
