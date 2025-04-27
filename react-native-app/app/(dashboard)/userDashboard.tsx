@@ -299,6 +299,17 @@ const UserDashboard = () => {
     }
   };
 
+    // Reset function to clear all states
+    const resetDashboard = () => {
+      setImage(null);
+      setLocation(null);
+      setUploading(false);
+      setAnalysisResult(null);
+      setUseCurrentLocation(true);
+      setLocationName("");
+      setShowLocationInput(false);
+    };
+
   return (
     <View style={styles.container}>
       <View style={styles.ambientGlow} />
@@ -374,6 +385,12 @@ const UserDashboard = () => {
           )}
         </View>
       )}
+    {/* Conditionally Render the Done Button */}
+    {image && !uploading && (
+      <TouchableOpacity style={styles.doneButton} onPress={resetDashboard}>
+        <Text style={styles.doneButtonText}>Done</Text>
+      </TouchableOpacity>
+    )}
     </View>
   );
 };
@@ -517,6 +534,21 @@ const styles = StyleSheet.create({
   },
   submitButtonText: {
     color: "#b7f740", // Matches profile.tsx title color
+    fontWeight: "bold",
+  },
+  doneButton: {
+    backgroundColor: "rgba(183, 247, 64, 0.1)", // Matches existing button styles
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    alignItems: "center",
+    marginTop: 20,
+    borderWidth: 1,
+    borderColor: "rgba(183, 247, 64, 0.3)", // Matches existing border styles
+  },
+  doneButtonText: {
+    color: "#b7f740", // Matches existing text color
+    fontSize: 16,
     fontWeight: "bold",
   },
 });
