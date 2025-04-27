@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   TextInput,
   TouchableOpacity,
+  KeyboardAvoidingView, // Import KeyboardAvoidingView
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as Location from "expo-location";
@@ -300,81 +301,87 @@ const UserDashboard = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.ambientGlow} />
-      <Text style={styles.title}>Earthquake Safety Dashboard</Text>
-      <Text style={styles.subtitle}>
-        Upload an image of your city to help us analyze safety measures.
-      </Text>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : -100} // Adjust offset as needed
+    >
+      <View style={styles.container}>
+        <View style={styles.ambientGlow} />
+        <Text style={styles.title}>Earthquake Safety Dashboard</Text>
+        <Text style={styles.subtitle}>
+          Upload an image of your city to help us analyze safety measures.
+        </Text>
 
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.actionButton} onPress={pickImage}>
-          <Text style={styles.actionButtonText}>Upload Image</Text>
-        </TouchableOpacity>
-        <View style={styles.buttonSpacer} />
-        <TouchableOpacity style={styles.actionButton} onPress={takePhoto}>
-          <Text style={styles.actionButtonText}>Take Photo</Text>
-        </TouchableOpacity>
-      </View>
-
-      {showLocationInput && (
-        <View style={styles.locationInputContainer}>
-          <Text style={styles.locationLabel}>
-            Please specify location (Be specific: type in the address):
-          </Text>
-          <TextInput
-            style={styles.locationInput}
-            value={locationName}
-            onChangeText={setLocationName}
-            placeholder="Enter specific location..."
-          />
-          <TouchableOpacity
-            style={styles.submitButton}
-            onPress={submitManualLocation}
-          >
-            <Text style={styles.submitButtonText}>Submit</Text>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.actionButton} onPress={pickImage}>
+            <Text style={styles.actionButtonText}>Upload Image</Text>
+          </TouchableOpacity>
+          <View style={styles.buttonSpacer} />
+          <TouchableOpacity style={styles.actionButton} onPress={takePhoto}>
+            <Text style={styles.actionButtonText}>Take Photo</Text>
           </TouchableOpacity>
         </View>
-      )}
 
-      {uploading && (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#b7f740" />
-          <Text style={styles.loadingText}>Analyzing image...</Text>
-        </View>
-      )}
+        {showLocationInput && (
+          <View style={styles.locationInputContainer}>
+            <Text style={styles.locationLabel}>
+              Please specify location (Be specific: type in the address):
+            </Text>
+            <TextInput
+              style={styles.locationInput}
+              value={locationName}
+              onChangeText={setLocationName}
+              placeholder="Enter specific location..."
+            />
+            <TouchableOpacity
+              style={styles.submitButton}
+              onPress={submitManualLocation}
+            >
+              <Text style={styles.submitButtonText}>Submit</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
-      {image && !uploading && !showLocationInput && (
-        <View style={styles.imageContainer}>
-          <Image source={{ uri: image }} style={styles.image} />
-          <Text style={styles.imageText}>Image Uploaded Successfully!</Text>
-        </View>
-      )}
+        {uploading && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#b7f740" />
+            <Text style={styles.loadingText}>Analyzing image...</Text>
+          </View>
+        )}
 
-      {analysisResult && (
-        <View style={styles.analysisContainer}>
-          <Text style={styles.analysisTitle}>Safety Analysis:</Text>
-          {typeof analysisResult === "string" ? (
-            <Text style={styles.analysisText}>{analysisResult}</Text>
-          ) : (
-            <>
-              <Text style={styles.analysisLabel}>Description:</Text>
-              <Text style={styles.analysisText}>
-                {analysisResult.Description}
-              </Text>
+        {image && !uploading && !showLocationInput && (
+          <View style={styles.imageContainer}>
+            <Image source={{ uri: image }} style={styles.image} />
+            <Text style={styles.imageText}>Image Uploaded Successfully!</Text>
+          </View>
+        )}
 
-              <Text style={styles.analysisLabel}>Safety Score:</Text>
-              <Text style={styles.analysisText}>{analysisResult.Score}</Text>
+        {analysisResult && (
+          <View style={styles.analysisContainer}>
+            <Text style={styles.analysisTitle}>Safety Analysis:</Text>
+            {typeof analysisResult === "string" ? (
+              <Text style={styles.analysisText}>{analysisResult}</Text>
+            ) : (
+              <>
+                <Text style={styles.analysisLabel}>Description:</Text>
+                <Text style={styles.analysisText}>
+                  {analysisResult.Description}
+                </Text>
 
-              <Text style={styles.analysisLabel}>Magnitude Survivability:</Text>
-              <Text style={styles.analysisText}>
-                {analysisResult["Magnitude Survivability"]}
-              </Text>
-            </>
-          )}
-        </View>
-      )}
-    </View>
+                <Text style={styles.analysisLabel}>Safety Score:</Text>
+                <Text style={styles.analysisText}>{analysisResult.Score}</Text>
+
+                <Text style={styles.analysisLabel}>Magnitude Survivability:</Text>
+                <Text style={styles.analysisText}>
+                  {analysisResult["Magnitude Survivability"]}
+                </Text>
+              </>
+            )}
+          </View>
+        )}
+      </View>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -502,21 +509,21 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 5,
     borderWidth: 1,
-    borderColor: "rgba(183, 247, 64, 0.3)", // Matches profile.tsx border color
+    borderColor: "rgba(183, 247, 64, 0.3)", 
     fontSize: 16,
-    color: "#e0e0e0", // Matches profile.tsx general text color
+    color: "#e0e0e0",
   },
   submitButton: {
-    backgroundColor: "rgba(183, 247, 64, 0.1)", // Matches profile.tsx button background
+    backgroundColor: "rgba(183, 247, 64, 0.1)", 
     padding: 10,
     borderRadius: 5,
     alignItems: "center",
     marginTop: 10,
     borderWidth: 1,
-    borderColor: "rgba(183, 247, 64, 0.3)", // Matches profile.tsx border color
+    borderColor: "rgba(183, 247, 64, 0.3)",
   },
   submitButtonText: {
-    color: "#b7f740", // Matches profile.tsx title color
+    color: "#b7f740", 
     fontWeight: "bold",
   },
 });
