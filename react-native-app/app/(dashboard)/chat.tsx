@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import { View, TextInput, TouchableOpacity, StyleSheet, Dimensions, ScrollView, ActivityIndicator } from "react-native";
 import { ThemedView } from "../../components/ThemedView";
 import { ThemedText } from "../../components/ThemedText";
+import type { ScrollView as ScrollViewType } from "react-native";
 
 const { width } = Dimensions.get("window");
 
@@ -11,7 +12,7 @@ const Chat = () => {
     ]);
     const [userInput, setUserInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const scrollViewRef = useRef();
+    const scrollViewRef = useRef<ScrollViewType>(null);
     
     const sendMessage = async () => {
         if (!userInput.trim()) return;
@@ -56,9 +57,12 @@ const Chat = () => {
           }
         } catch (error) {
           console.error("Error communicating with backend:", error);
+
+          const errorMessage = error instanceof Error ? error.message : "Unknown error";
+
           setMessages((prevMessages) => [...prevMessages, { 
             sender: "assistant", 
-            text: `Sorry, I couldn't connect to the server. Please check your connection or try again later. (Error: ${error.message})` 
+            text: `Sorry, I couldn't connect to the server. Please check your connection or try again later. (Error: ${errorMessage})` 
           }]);
         } finally {
           setIsLoading(false);
@@ -79,13 +83,16 @@ const Chat = () => {
           Get real-time earthquake safety information
         </ThemedText>
       </View>
-      
-      {/* Chat messages */}
-      <ScrollView 
+
+    {/* Chat messages */}
+    <ScrollView 
         style={styles.chatContainer}
         ref={scrollViewRef}
-        onContentSizeChange={() => scrollViewRef.current.scrollToEnd({ animated: true })}
-      >
+        onContentSizeChange={() => {
+            scrollViewRef.current?.scrollToEnd({ animated: true });
+          }}
+        >
+
         {messages.map((message, index) => (
           <View
             key={index}
@@ -105,7 +112,7 @@ const Chat = () => {
             <ThemedText style={styles.loadingText}>QuakeSafe Assistant is responding...</ThemedText>
           </View>
         )}
-      </ScrollView>
+    </ScrollView>
 
       {/* Input Area */}
       <View style={styles.inputArea}>
