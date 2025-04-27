@@ -1,18 +1,20 @@
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 import uvicorn
-from uuid import uuid4
 import boto3
 import anthropic
 import uuid
 from dotenv import load_dotenv
 import os
 from pydantic import BaseModel
-from db.supabase_client import insert_image_entry, insert_safety_assessment
+from db.supabase_client import insert_image_entry, insert_safety_assessment, insert_chat_message
 from supabase import create_client
 from typing import Optional
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 import io
+from groq import Groq
+from datetime import datetime
+import json
 
 app = FastAPI()
 load_dotenv()
@@ -28,8 +30,7 @@ app.add_middleware(
 S3_BUCKET = os.getenv('S3_BUCKET')
 AWS_REGION = os.getenv('AWS_REGION')
 CLAUDE_API_KEY = os.getenv('CLAUDE_API_KEY')
-SUPABASE_URL = os.getenv('SUPABASE_URL')
-SUPABASE_KEY = os.getenv('SUPABASE_KEY')
+GROQ_API_KEY = os.getenv('GROQ_API_KEY')
 
 SUPABASE_URL = os.getenv('SUPABASE_URL')
 SUPABASE_KEY = os.getenv('SUPABASE_KEY')
@@ -294,6 +295,59 @@ async def analyze(
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Error processing upload: {str(e)}")
+
+class ChatRequest(BaseModel):
+    user_id: str
+    prompt: str
+
+@app.post("/chat")
+async def process_chatbot(request: ChatRequest):
+    """
+    Endpoint to handle chat prompts and return structured responses from Groq AI.
+    """
+    print('reached endpoint')
+    try:
+        groq_client = Groq(api_key=GROQ_API_KEY)
+        chat_completions = groq_client.chat.completions.create(
+            messages=[
+                {
+                    'role': 'system',
+                    'content': (
+                        "You are a helpful and knowledgeable assistant specializing in earthquake safety. "
+                        "When answering the user's question, also determine if their question relates to "
+                        "'before', 'during', or 'after' an earthquake. "
+                        "At the end of your reply, output your answer clearly in the format:\n\n"
+                        "Timing: <before/during/after>"
+                        "Do not include any kind of bold, italic, or different sized text in your response."
+                    ),
+                },
+                {
+                    'role': 'user',
+                    'content': request.prompt,
+                }
+            ],
+            model="llama-3.3-70b-versatile",
+            max_tokens=300,
+        )
+        
+        print('response received')
+        # parse the JSON output correctly
+        response = chat_completions.choices[0].message.content
+        print('response grabbed')
+        ai_response, context = response.split('\n\nTiming:')
+        ai_response = ai_response.strip()
+        context = context.strip()
+        print('response split')
+        
+        # insert the log of this chat interaction to the database
+        supabase_client = create_client(SUPABASE_URL, SUPABASE_KEY)
+        db_response = insert_chat_message(supabase_client, request.user_id, request.prompt, ai_response, context) # figure out how to establish context
+        
+        print('inserted into db')
+        return {'ai_response': ai_response, 'context': context}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == '__main__':
     uvicorn.run('main:app', host='localhost', port=8000, reload=True)
