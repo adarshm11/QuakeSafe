@@ -56,6 +56,23 @@ def get_image_by_id(supabase: Client, image_id: str):
         print(f'Error accessing DB: {e}')
         return None
 
+def fetch_all_images(supabase: Client):
+    """Retrieve all images with location data."""
+    try:
+        response = supabase.from_('images').select('*').execute()
+        
+        # Check for errors in the response
+        if hasattr(response, 'error') and response.error:
+            print(f"Error fetching images: {response.error}")
+            return []
+        else:
+            print(f"Fetched data: {len(response.data)} records")
+            return response.data
+    except Exception as e:
+        print(f"Exception in fetch_all_images: {str(e)}")
+        return []
+
+
 def insert_safety_assessment(supabase: Client, image_id: str, safety_score: float, 
                              estimated_magnitude_survivability: str, description: str):
     """Create a new safety assessment record."""

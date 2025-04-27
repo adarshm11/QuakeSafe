@@ -49,13 +49,16 @@ async def upload_to_s3(file: UploadFile):
     )
     return filename
 
-async def generate_unique_url(filename: str, expiration=300):
-    '''Generates a URL for the specified file, allowing the Claude client to access the image.'''
+async def generate_unique_url(filename: str, expiration=3600) -> str:
+    '''Generates a presigned URL for the specified file, allowing the Claude client to access the image.'''
     return s3_client.generate_presigned_url(
         'get_object',
         Params={'Bucket': S3_BUCKET, 'Key': filename},
-        ExpiresIn=expiration,
+        ExpiresIn=expiration
     )
+
+async def generate_public_url(filename: str) -> str:
+    return f"https://{S3_BUCKET}.s3.amazonaws.com/{filename}"
 
 async def analyze_image_with_claude(image_url: str):
     '''Passes in the user image to the Claude AI agent for analysis, returning the analysis as a dict'''
@@ -227,7 +230,7 @@ async def analyze(
             jpg_image,
             S3_BUCKET,
             filename,
-            ExtraArgs={'ContentType': 'image/jpeg', 'ACL': 'private'}
+            ExtraArgs={'ContentType': 'image/jpeg'}
         )
         print(f"[LOG] S3 upload complete. Filename: {filename}")
         
@@ -235,6 +238,8 @@ async def analyze(
         print("[LOG] Generating presigned URL...")
         image_url = await generate_unique_url(filename)
         print(f"[LOG] URL generated. Length: {len(image_url)}")
+        save_image_url = await generate_public_url(filename)
+        print(f"[LOG] Public URL generated. Length: {len(save_image_url)}")
         
         # Analyze the image with Claude
         print("[LOG] Sending image to Claude for analysis...")
@@ -251,7 +256,7 @@ async def analyze(
         print("[LOG] Creating Supabase client...")
         supabase_client = create_client(SUPABASE_URL, SUPABASE_KEY)
         print("[LOG] Inserting image entry into database...")
-        image_id = insert_image_entry(supabase_client, user_id, image_url, lng, lat)
+        image_id = insert_image_entry(supabase_client, user_id, save_image_url, lng, lat, location_name)
         print(f"[LOG] Image entry inserted with ID: {image_id}")
         
         if not image_id:
@@ -293,6 +298,86 @@ async def analyze(
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Error processing upload: {str(e)}")
+    
+@app.get('/images')
+async def get_all_images():
+    """Endpoint to retrieve all images with location data"""
+    print("[LOG] Request received - getting all images")
+    
+    try:
+        print("[LOG] Creating Supabase client...")
+        supabase_client = create_client(SUPABASE_URL, SUPABASE_KEY)
+        print("[LOG] Supabase client created successfully")
+        
+        print("[LOG] About to call fetch_all_images...")
+        images = fetch_all_images(supabase_client)
+        print("[LOG] fetch_all_images returned data type:", type(images))
+        
+        print(f"[LOG] Found {len(images)} images")
+        if images and len(images) > 0:
+            print("[LOG] First image sample:", images[0])
+        
+        print("[LOG] Returning response")
+        return {'images': images}
+        
+    except Exception as e:
+        print(f"[ERROR] Error retrieving images: {str(e)}")
+        print(f"[ERROR] Error type: {type(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Error retrieving images: {str(e)}")
+
+@app.get('/image/{image_id}')
+async def get_image(image_id: str):
+    """Endpoint to retrieve a specific image by its ID"""
+    try:
+        print(f"[LOG] Request received - getting image with ID: {image_id}")
+        
+        # Create Supabase client
+        supabase_client = create_client(SUPABASE_URL, SUPABASE_KEY)
+        
+        # Get the image data
+        image_data = get_image_by_id(supabase_client, image_id)
+        if not image_data:
+            print(f"[ERROR] Image with ID {image_id} not found")
+            raise HTTPException(status_code=404, detail="Image not found")
+        
+        print(f"[LOG] Found image: {image_data['id']}")
+        
+        # Return the image data
+        return {'image': image_data}
+        
+    except Exception as e:
+        print(f"[ERROR] Error retrieving image: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Error retrieving image: {str(e)}")
+
+@app.get('/safety_assessments/{image_id}')
+async def get_safety_assessments(image_id: str):
+    """Endpoint to retrieve all safety assessments for a specific image"""
+    try:
+        print(f"[LOG] Request received - getting safety assessments for image with ID: {image_id}")
+        
+        # Create Supabase client
+        supabase_client = create_client(SUPABASE_URL, SUPABASE_KEY)
+        
+        # Get the image data
+        safety_assessments = get_safety_assessments_by_image(supabase_client, image_id)
+        if not safety_assessments:
+            print(f"[ERROR] Safety assessments not found for image with ID {image_id}")
+            raise HTTPException(status_code=404, detail="Safety assessments not found")
+        
+        print(f"[LOG] Found safety assessments: {safety_assessments}")
+        
+        # Return the safety assessments data
+        return {'safety_assessments': safety_assessments}
+        
+    except Exception as e:
+        print(f"[ERROR] Error retrieving safety assessments: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Error retrieving safety assessments: {str(e)}")
 
 class ChatRequest(BaseModel):
     user_id: str
@@ -348,4 +433,4 @@ async def process_chatbot(request: ChatRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == '__main__':
-    uvicorn.run('main:app', host='localhost', port=8000, reload=True)
+    uvicorn.run('main:app', host='0.0.0.0', port=8000, reload=True)
